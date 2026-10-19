@@ -1,9 +1,25 @@
 # Contributing
 
-Open an issue before large changes. Include the expected and actual behavior, OS, Bun version, source commit and a minimal synthetic reproduction. Do not attach real conversations, credentials, production configuration or private screenshots.
+This project uses familiar public issue and PR workflows, but its first-party source is **source-available, not OSI open source**. Read LICENSE, CODE_OF_CONDUCT.md and SECURITY.md before contributing.
 
-Keep changes focused. Add relevant tests and run bun run check:public, bun run typecheck, bun run test and bun run build. Explain behavior changes and test limitations in the PR. The required aggregate check is public-source / required. Maintainers review correctness, privacy and dependency licensing before merging; a green CI alone is not acceptance.
+## Start with a scoped problem
 
-By submitting a contribution, you offer that contribution under PolyForm Noncommercial 1.0.0 unless it is clearly identified third-party material under its original terms. Keep copyright and license notices. Submit only work you may legally contribute.
+Search existing issues and discuss substantial changes first. Include expected and actual behavior, OS, runtime versions, source commit and a minimal synthetic reproduction. Never upload raw sessions, conversation exports, credentials, production configuration or private screenshots. Report security concerns privately as described in SECURITY.md.
 
-Submission does NOT grant maintainers a separate right to commercially relicense your contribution. Any commercial permission or contributor agreement must be discussed and explicitly agreed separately with the relevant rights holders. No copyright assignment is implied. Contact dev0jsh@gmail.com for licensing discussions.
+Issue triage, labels, severity, priority and closure rules
+https://github.com/dinobot-labs/dinobot-desktop/blob/main/docs/wiki/Issues.md
+
+PR drafts, review, conflict resolution, authorship and squash merges
+https://github.com/dinobot-labs/dinobot-desktop/blob/main/docs/wiki/Pull-Requests.md
+
+## Submit and verify
+
+Link the issue, keep the diff narrow, add relevant tests and update affected docs. Use a draft until ready for review. For code changes run `bun run check:public`, `bun run typecheck`, `bun run test` and `bun run build`; setup and boundaries are in docs/wiki/Development.md. For docs-only changes, check paths and examples and run the public guard. Report actual results and limitations. The aggregate CI check is `public-source / required`; green CI alone is not acceptance.
+
+Address requested changes and rerun affected checks after conflicts are resolved. Maintainers decide scope and merge readiness. Independent review is preferred where available, but a sole maintainer is not required to approve their own PR. There is no response SLA and no automatic stale closure. Merge does not mean release: record whether a fix is unreleased or available in a named release.
+
+## License and contributor rights
+
+By submitting a contribution, you offer your first-party contribution under PolyForm Noncommercial 1.0.0 unless a separate explicit agreement says otherwise. Clearly identify third-party material and preserve its original license, copyright and attribution. Submit only work you may legally contribute, including any necessary employer permission.
+
+Permitted noncommercial use is free under LICENSE; commercial use requires separate permission from the relevant rights holders. Submission does **not** grant maintainers or recipients an additional commercial license, commercial relicensing right or copyright assignment. Contributor authorship remains credited. Any commercial permission or contributor agreement must be explicitly agreed separately with the relevant rights holders. Contact dev0jsh@gmail.com for licensing discussions.

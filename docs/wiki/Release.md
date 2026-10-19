@@ -8,3 +8,9 @@ Public core source
 https://github.com/dinobot-labs/dinobot
 
 The root build command needs none of those packaging inputs.
+
+## Tracking fixes
+
+A merged change is available in source at its commit, not necessarily in a release or installer. When closing a fixed issue, link the merged PR or commit and state `unreleased` until a named release contains it. For partial fixes, keep the remaining scope open. GitHub closing keywords can close an issue on merge; maintainers must still verify its scope and add the release status.
+
+When publishing a future release, list notable fixes and breaking changes, link the included issues and record the exact source revision. Update those issues with the release identifier. Do not promise release dates or describe source-only verification as packaged application acceptance.
