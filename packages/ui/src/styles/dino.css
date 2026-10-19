@@ -1,0 +1,152 @@
+/*
+ * Mascot choreography (components/dino). Each region variant is a <g data-layer="region:pose">; the first variant of a
+ * region carries data-rest and is the only one visible without animation. Frame swaps are opacity steps
+ * (steps(1, end): every keyframe holds until the next), body moves are transforms in SVG user units (1px = 1 cell).
+ */
+.dn-dino [data-layer]:not([data-rest]) {
+	opacity: 0;
+}
+.dn-dino .dn-body,
+.dn-dino .dn-ground {
+	transform-box: view-box;
+}
+
+/* ---------------------------------------------------------------- frame keyframes */
+@keyframes dn-f2-a {
+	0% { opacity: 1; }
+	50% { opacity: 0; }
+	100% { opacity: 0; }
+}
+@keyframes dn-f2-b {
+	0% { opacity: 0; }
+	50% { opacity: 1; }
+	100% { opacity: 1; }
+}
+@keyframes dn-bob {
+	0% { transform: translateY(0); }
+	50% { transform: translateY(-0.5px); }
+	100% { transform: translateY(-0.5px); }
+}
+@keyframes dn-ground {
+	from { transform: translateX(0); }
+	to { transform: translateX(-2px); }
+}
+
+/* idle: 6 s. open | blink (150 ms) | open | glance forward | open */
+@keyframes dn-idle-open {
+	0% { opacity: 1; }
+	80% { opacity: 0; }
+	82.5% { opacity: 1; }
+	90% { opacity: 0; }
+	98% { opacity: 1; }
+	100% { opacity: 1; }
+}
+@keyframes dn-idle-blink {
+	0% { opacity: 0; }
+	80% { opacity: 1; }
+	82.5% { opacity: 0; }
+	100% { opacity: 0; }
+}
+@keyframes dn-idle-glance {
+	0% { opacity: 0; }
+	90% { opacity: 1; }
+	98% { opacity: 0; }
+	100% { opacity: 0; }
+}
+.dn-dino[data-state="idle"] [data-layer="eye:idle"] { animation: dn-idle-open 6s steps(1, end) infinite; }
+.dn-dino[data-state="idle"] [data-layer="eye:blink"] { animation: dn-idle-blink 6s steps(1, end) infinite; }
+.dn-dino[data-state="idle"] [data-layer="eye:look-forward"] { animation: dn-idle-glance 6s steps(1, end) infinite; }
+
+/* thinking: 3.2 s. look up | center | forward | blink | look up */
+@keyframes dn-think-up {
+	0% { opacity: 1; }
+	45% { opacity: 0; }
+	88% { opacity: 1; }
+	100% { opacity: 1; }
+}
+@keyframes dn-think-center {
+	0% { opacity: 0; }
+	45% { opacity: 1; }
+	55% { opacity: 0; }
+	100% { opacity: 0; }
+}
+@keyframes dn-think-forward {
+	0% { opacity: 0; }
+	55% { opacity: 1; }
+	85% { opacity: 0; }
+	100% { opacity: 0; }
+}
+@keyframes dn-think-blink {
+	0% { opacity: 0; }
+	85% { opacity: 1; }
+	88% { opacity: 0; }
+	100% { opacity: 0; }
+}
+.dn-dino[data-state="thinking"] [data-layer="eye:look-up"] { animation: dn-think-up 3.2s steps(1, end) infinite; }
+.dn-dino[data-state="thinking"] [data-layer="eye:idle"] { animation: dn-think-center 3.2s steps(1, end) infinite; }
+.dn-dino[data-state="thinking"] [data-layer="eye:look-forward"] { animation: dn-think-forward 3.2s steps(1, end) infinite; }
+.dn-dino[data-state="thinking"] [data-layer="eye:blink"] { animation: dn-think-blink 3.2s steps(1, end) infinite; }
+
+/* running: 250 ms, two leg frames, a half-cell bob, the ground scrolls left. */
+.dn-dino[data-state="running"] [data-layer="legs:run-a"] { animation: dn-f2-a 250ms steps(1, end) infinite; }
+.dn-dino[data-state="running"] [data-layer="legs:run-b"] { animation: dn-f2-b 250ms steps(1, end) infinite; }
+.dn-dino[data-state="running"] .dn-body { animation: dn-bob 250ms steps(1, end) infinite; }
+.dn-dino[data-state="running"] .dn-ground { animation: dn-ground 250ms steps(2, end) infinite; }
+
+/* waiting for a person: 4 s, looking at you, a slow nod and a blink. */
+@keyframes dn-wait-open {
+	0% { opacity: 1; }
+	90% { opacity: 0; }
+	94% { opacity: 1; }
+	100% { opacity: 1; }
+}
+@keyframes dn-wait-blink {
+	0% { opacity: 0; }
+	90% { opacity: 1; }
+	94% { opacity: 0; }
+	100% { opacity: 0; }
+}
+.dn-dino[data-state="waiting"] [data-layer="eye:look-forward"] { animation: dn-wait-open 4s steps(1, end) infinite; }
+.dn-dino[data-state="waiting"] [data-layer="eye:blink"] { animation: dn-wait-blink 4s steps(1, end) infinite; }
+.dn-dino[data-state="waiting"] .dn-body { animation: dn-bob 2s steps(1, end) infinite; }
+
+/* done: one jump with a laugh, then it stands laughing. */
+@keyframes dn-jump {
+	0% { transform: translateY(0); animation-timing-function: var(--motion-out); }
+	30% { transform: translateY(-3.5px); animation-timing-function: var(--motion-in); }
+	60% { transform: translateY(0); animation-timing-function: var(--motion-out); }
+	72% { transform: translateY(-0.6px); animation-timing-function: var(--motion-in); }
+	84%,
+	100% { transform: translateY(0); }
+}
+@keyframes dn-jump-legs-tuck {
+	0% { opacity: 1; }
+	60% { opacity: 0; }
+	100% { opacity: 0; }
+}
+@keyframes dn-jump-legs-stand {
+	0% { opacity: 0; }
+	60% { opacity: 1; }
+	100% { opacity: 1; }
+}
+.dn-dino[data-state="done"] .dn-body { animation: dn-jump 900ms both; }
+.dn-dino[data-state="done"] [data-layer="legs:jump"] { animation: dn-jump-legs-tuck 900ms steps(1, end) both; }
+.dn-dino[data-state="done"] [data-layer="legs:idle"] { animation: dn-jump-legs-stand 900ms steps(1, end) both; }
+
+/* failed: one short shake, then still. */
+@keyframes dn-shake {
+	0%,
+	100% { transform: translateX(0); }
+	20% { transform: translateX(-0.7px); }
+	40% { transform: translateX(0.7px); }
+	60% { transform: translateX(-0.45px); }
+	80% { transform: translateX(0.45px); }
+}
+.dn-dino[data-state="failed"] .dn-body { animation: dn-shake 420ms steps(1, end) 1 both; }
+
+@media (prefers-reduced-motion: reduce) {
+	.dn-dino *,
+	.dn-dino {
+		animation: none !important;
+	}
+}

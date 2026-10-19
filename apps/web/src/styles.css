@@ -1,0 +1,57 @@
+@import "tailwindcss";
+@import "../../../packages/ui/src/styles/index.css";
+@source "../../../packages/ui/src";
+@source "./";
+
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+
+html,
+body,
+#root {
+	height: 100%;
+	overflow: hidden;
+}
+body {
+	user-select: none;
+}
+/* Text the person reads or copies stays selectable. */
+.selectable,
+.selectable * {
+	user-select: text;
+}
+.app-drag {
+	-webkit-app-region: drag;
+}
+.app-no-drag,
+.app-drag button,
+.app-drag a,
+.app-drag input,
+.app-drag [role="button"] {
+	-webkit-app-region: no-drag;
+}
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+::-webkit-scrollbar-thumb {
+	background: var(--line-strong);
+	border: 3px solid transparent;
+	background-clip: padding-box;
+	border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: var(--line-ui);
+	border: 3px solid transparent;
+	background-clip: padding-box;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+	background: transparent;
+}
+.dot-paper {
+	background-image: radial-gradient(circle, var(--dot-ink) 1px, transparent 1.2px);
+	background-size: 20px 20px;
+	background-position: 10px 10px;
+}

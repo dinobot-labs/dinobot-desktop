@@ -1,0 +1,565 @@
+/*
+ * Dinobot Desktop tokens: Signal Paper (light) and Signal Night (dark).
+ *
+ * Light values are the dinobot landing tokens (services/landing/src/client/styles/tokens.css, ADR 0086) verbatim.
+ * Dark values come from the TUI's Dinobot Signal palette (src/tui/theme.ts, ADR 0027): the same cool hue family,
+ * #191919-ish surfaces and #ECF0EE ink. The five brand signals keep their solids in both themes; only the readable
+ * text variant (-deep), the tint and the soft fill change.
+ *
+ * Rules (docs/design-system.md):
+ *   - Flat first. Structure comes from hairlines and fills; only floating layers (menus, popovers, toasts) cast a shadow.
+ *   - One signal per surface. A component opts into one with [data-signal].
+ *   - Status is never color alone: every status pairs a glyph or a word with its color.
+ *   - Motion animates transform/opacity; loops are stepped (50 ms cadence) and stop under reduced motion.
+ *
+ * test/contrast.test.ts checks every text pair >= 4.5:1 and every UI boundary >= 3:1 in both themes.
+ */
+
+/* Primitives (light). `.light` re-applies them under a dark ancestor (style guide previews). */
+:root,
+.light {
+	color-scheme: light;
+
+	/* ------------------------------------------------------------ 1. Neutrals: paper -> ink (landing --n-*) */
+	--n-1: #f9fbfa; /* paper, window background */
+	--n-2: #f3f6f5; /* band: sidebar, wells */
+	--n-3: #ecefee; /* hover fill */
+	--n-4: #e3e7e5; /* pressed / selected fill */
+	--n-5: #d7dcda; /* hairline */
+	--n-6: #c7ccca; /* strong hairline, grid dots */
+	--n-7: #a9aeac; /* disabled */
+	--n-8: #838785; /* control boundary (>= 3:1) */
+	--n-9: #676b6a; /* text-3 */
+	--n-10: #505352; /* text-2 */
+	--n-11: #303231; /* strong secondary */
+	--n-12: #141515; /* ink */
+	--white: #ffffff;
+
+	/* ------------------------------------------------------------ 2. Signals (ADR 0027 icon stops) + status hues
+	 * solid: dots, stripes, mascot, fills behind ink. Never text.
+	 * deep:  readable text and icons on every surface.
+	 * tint:  fill behind deep or ink text.   soft: larger fills, selection. */
+	--mint: #19ca9d;
+	--mint-deep: #007650;
+	--mint-tint: #e7f8f1;
+	--mint-soft: #bcecd9;
+	--teal: #2db4b2;
+	--teal-deep: #007372;
+	--teal-tint: #e6f5f4;
+	--teal-soft: #bbe3e1;
+	--cyan: #3da5c2;
+	--cyan-deep: #00718c;
+	--cyan-tint: #e6f2f7;
+	--cyan-soft: #bbdde8;
+	--blue: #538eda;
+	--blue-deep: #2f68b0;
+	--blue-tint: #e7effb;
+	--blue-soft: #bdd4f3;
+	--indigo: #5d7cde;
+	--indigo-deep: #4661bd;
+	--indigo-tint: #e7edfc;
+	--indigo-soft: #becef5;
+	/* The mascot's cheek doubles as the error hue (TUI coral). */
+	--red: #ff8f87;
+	--red-deep: #b5362f;
+	--red-tint: #ffebe9;
+	--red-soft: #ffcec8;
+	/* Amber: the TUI's running color (ADR 0015). Not a brand signal; status only. */
+	--amber: #f2a541;
+	--amber-deep: #8a5300;
+	--amber-tint: #fdf2e4;
+	--amber-soft: #f8dcb4;
+	/* Status marks are graphics that carry meaning: >= 3:1 on every surface (WCAG 1.4.11). The brand solids are
+	 * too light on paper, so light marks use a deeper cut of the same hue; dark marks are the solids. */
+	--mark-amber: #c77700;
+	--mark-mint: #0f9e79;
+	--mark-red: #e5534b;
+	--mark-indigo: #5d7cde;
+	/* Dinosaur theme accents (ADR 0100, brand/species.ts accent.light). The T-rex (Signal) uses the mint family;
+	 * the pterodactyl (Dusk) orchid, the brachiosaurus (Fern) leaf and the triceratops (Canyon) clay. Same solid/deep/tint/soft roles as a signal. */
+	--ptero: #c45ab3;
+	--ptero-deep: #a63894;
+	--ptero-tint: #f9eff7;
+	--ptero-soft: #edcee8;
+	--brachio: #8cc24c;
+	--brachio-deep: #4d7026;
+	--brachio-tint: #f4f9ed;
+	--brachio-soft: #ddedc9;
+	--tricera: #de6f3a;
+	--tricera-deep: #a83800;
+	--tricera-tint: #fcf1eb;
+	--tricera-soft: #f5d5c4;
+	--surface: var(--white);
+	--text-inverse-2: var(--n-6);
+	--scrim: rgb(20 21 21 / 0.32);
+	--dino-socket: var(--white);
+	--elevation-float: 0 1px 2px rgb(20 21 21 / 0.04), 0 8px 24px -6px rgb(20 21 21 / 0.1);
+	--elevation-pop: 0 2px 4px rgb(20 21 21 / 0.06), 0 16px 40px -8px rgb(20 21 21 / 0.18);
+}
+
+/* Roles are declared on every theme root (and every [data-dino] frame, whose species neutrals replace the
+ * primitives) so a nested .dark/.light/[data-dino] recomputes them from its own primitives. */
+:root,
+.light,
+.dark,
+[data-dino] {
+	/* ------------------------------------------------------------ 3. Semantic roles */
+	--bg: var(--n-1);
+	--bg-band: var(--n-2);
+	--surface-sunken: var(--n-2);
+	--surface-hover: var(--n-3);
+	--surface-pressed: var(--n-4);
+	--surface-inverse: var(--n-12);
+	--line: var(--n-5);
+	--line-strong: var(--n-6);
+	--line-ui: var(--n-8);
+	--text-1: var(--n-12);
+	--text-2: var(--n-10);
+	--text-3: var(--n-9);
+	--text-disabled: var(--n-7);
+	--text-inverse: var(--n-1);
+	--focus: var(--blue-deep);
+	--selection: var(--mint-soft);
+	--dot-ink: var(--n-6);
+
+	/* The five brand signals of the dinosaur theme, tail to head (brand/species.ts stops): the T-rex mint ->
+	 * indigo by default, the species body stops under [data-dino]. solid: graphics only; deep: text. Status colors
+	 * never use them, so a theme can repaint the brand without touching status. */
+	--brand-1: var(--mint);
+	--brand-2: var(--teal);
+	--brand-3: var(--cyan);
+	--brand-4: var(--blue);
+	--brand-5: var(--indigo);
+	--brand-1-deep: var(--mint-deep);
+	--brand-2-deep: var(--teal-deep);
+	--brand-3-deep: var(--cyan-deep);
+	--brand-4-deep: var(--blue-deep);
+	--brand-5-deep: var(--indigo-deep);
+
+	/* The current signal; [data-signal] rescopes it. */
+	--accent: var(--mint);
+	--accent-deep: var(--mint-deep);
+	--accent-tint: var(--mint-tint);
+	--accent-soft: var(--mint-soft);
+
+	/* Agent status roles (ADR 0015 parity: running amber, done green, failed coral; plus waiting and cancelled).
+	 * dot: the glyph color.  fg: the status word.  tint: a row or chip fill. */
+	--status-idle: var(--n-8);
+	--status-idle-fg: var(--text-3);
+	--status-running: var(--mark-amber);
+	--status-running-fg: var(--amber-deep);
+	--status-running-tint: var(--amber-tint);
+	--status-waiting: var(--mark-indigo);
+	--status-waiting-fg: var(--indigo-deep);
+	--status-waiting-tint: var(--indigo-tint);
+	--status-success: var(--mark-mint);
+	--status-success-fg: var(--mint-deep);
+	--status-success-tint: var(--mint-tint);
+	--status-failed: var(--mark-red);
+	--status-failed-fg: var(--red-deep);
+	--status-failed-tint: var(--red-tint);
+	--status-cancelled: var(--n-8);
+	--status-cancelled-fg: var(--text-3);
+
+
+	/* ------------------------------------------------------------ 4. Typography
+	 * Geist + Geist Mono, Pretendard for Hangul. App sizes are fixed (desktop UI), not fluid like the landing. */
+	--font-ui: "Geist Variable", "Geist", "Pretendard Variable", "Pretendard", ui-sans-serif, system-ui, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+	--font-code: "Geist Mono Variable", "Geist Mono", "Pretendard Variable", "Pretendard", ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+	--fs-micro: 0.6875rem; /* 11: annotations, kbd */
+	--fs-xs: 0.75rem; /* 12: mono labels, meta */
+	--fs-sm: 0.8125rem; /* 13: default UI text */
+	--fs-md: 0.875rem; /* 14: chat body */
+	--fs-lg: 1rem; /* 16: panel titles */
+	--fs-xl: 1.25rem; /* 20: section titles */
+	--fs-2xl: 1.75rem; /* 28: page titles, empty states */
+	--fs-display: 2.75rem; /* 44: style guide hero */
+	--lh-tight: 1.2;
+	--lh-ui: 1.45;
+	--lh-chat: 1.65;
+	--tr-display: -0.035em;
+	--tr-title: -0.018em;
+	--tr-label: 0.08em;
+
+	/* ------------------------------------------------------------ 5. Shape */
+	--radius-1: 4px; /* tags, kbd, code */
+	--radius-2: 6px; /* small controls */
+	--radius-3: 8px; /* buttons, inputs, DAG nodes */
+	--radius-4: 12px; /* cards, menus, chat bubbles */
+	--radius-5: 16px; /* panels, composer */
+	--radius-6: 24px; /* large frames */
+
+	/* ------------------------------------------------------------ 7. Motion (landing scale) */
+	--dur-micro: 120ms;
+	--dur-state: 200ms;
+	--dur-enter: 320ms;
+	--dur-scene: 560ms;
+	--dur-character: 900ms;
+	--motion-standard: cubic-bezier(0.4, 0, 0.2, 1);
+	--motion-out: cubic-bezier(0.16, 1, 0.3, 1);
+	--motion-in: cubic-bezier(0.5, 0, 0.75, 0);
+	--spring-snappy: linear(0, 0.0251, 0.0891, 0.1779, 0.2799, 0.3866, 0.4915, 0.5902, 0.6798, 0.7586, 0.8261, 0.8823, 0.9278, 0.9636, 0.9908, 1.0105, 1.024, 1.0325, 1.037, 1.0384, 1.0376, 1.0352, 1.0319, 1.028, 1.0239, 1.0199, 1.0161, 1.0126, 1.0095, 1.0069, 1.0047, 1.0029, 1);
+	--spring-bouncy: linear(0, 0.0364, 0.1307, 0.2621, 0.4123, 0.5662, 0.7123, 0.8424, 0.9512, 1.0367, 1.0985, 1.1382, 1.1585, 1.1628, 1.1547, 1.1379, 1.1157, 1.0909, 1.0659, 1.0425, 1.0219, 1.0049, 0.9917, 0.9824, 0.9766, 0.9738, 0.9736, 0.9752, 0.9782, 0.9819, 0.986, 0.99, 0.9938, 0.997, 0.9997, 1.0017, 1.0031, 1.0039, 1.0043, 1.0043, 1.004, 1.0034, 1.0028, 1.0022, 1);
+	/* Loops share a 50 ms step (20 fps) so spinners and shimmers redraw on the same frames:
+	 * the shimmer is 2000 ms / 40 steps, the spinner 1300 ms / 26 steps, the run cycle 250 ms / 2 frames. */
+	--loop-shimmer: 2000ms;
+	--loop-spinner: 1300ms;
+}
+
+/* ---------------------------------------------------------------- Signal Night (dark) */
+/* Primitives and the few role overrides of the dark theme. Must stay after the roles block. */
+.dark {
+	color-scheme: dark;
+
+	--n-1: #141615;
+	--n-2: #191c1b;
+	--n-3: #222625;
+	--n-4: #2a2f2e;
+	--n-5: #2e3433;
+	--n-6: #3b4241;
+	--n-7: #5a6461;
+	--n-8: #7a8582;
+	--n-9: #909d99;
+	--n-10: #b7c0bd;
+	--n-11: #d4dad8;
+	--n-12: #ecf0ee;
+
+	--mint-deep: #6fdcbc;
+	--mint-tint: #15302a;
+	--mint-soft: #1f4a3f;
+	--teal-deep: #6fd3c6;
+	--teal-tint: #142e2e;
+	--teal-soft: #1d4645;
+	--cyan-deep: #7ccbdb;
+	--cyan-tint: #142a31;
+	--cyan-soft: #1d424c;
+	--blue-deep: #8db4f0;
+	--blue-tint: #172437;
+	--blue-soft: #223857;
+	--indigo-deep: #a7b6f3;
+	--indigo-tint: #1b2139;
+	--indigo-soft: #28325a;
+	--red-deep: #ff9d95;
+	--red-tint: #3a2422;
+	--red-soft: #5a302c;
+	--amber: #ffbf80;
+	--amber-deep: #ffbf80;
+	--amber-tint: #382b1d;
+	--amber-soft: #574027;
+	--mark-amber: var(--amber);
+	--mark-mint: var(--mint);
+	--mark-red: var(--red);
+	--mark-indigo: #7b93e6;
+	/* brand/species.ts accent.dark */
+	--ptero: #c45ab3;
+	--ptero-deep: #e3a3d8;
+	--ptero-tint: #342231;
+	--ptero-soft: #492a44;
+	--brachio: #8cc24c;
+	--brachio-deep: #b1d986;
+	--brachio-tint: #2a351f;
+	--brachio-soft: #384a26;
+	--tricera: #de6f3a;
+	--tricera-deep: #f7b392;
+	--tricera-tint: #36231a;
+	--tricera-soft: #4d2f21;
+
+	--surface: #1b1e1d;
+	--surface-sunken: var(--n-1);
+	--text-inverse-2: var(--n-7);
+	--scrim: rgb(0 0 0 / 0.5);
+	--dino-socket: var(--n-12);
+
+	--elevation-float: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -6px rgb(0 0 0 / 0.5);
+	--elevation-pop: 0 2px 4px rgb(0 0 0 / 0.35), 0 16px 40px -8px rgb(0 0 0 / 0.6);
+}
+
+/* ---------------------------------------------------------------- Dinosaur themes (ADR 0100) */
+/* [data-dino] on <html> (or any preview frame) swaps the accent family and the selection here, and the surfaces below. Status
+ * colors, text and surfaces never change. The accents point at primitives that .light/.dark already resolve, so
+ * every combination works: html[data-dino].dark, a .dark/.light frame inside [data-dino] (whose role block would
+ * otherwise reset --accent to mint) and a [data-dino] frame inside either theme. rex restores the default mint. */
+[data-dino="rex"],
+[data-dino="rex"] .light,
+[data-dino="rex"] .dark {
+	--accent: var(--mint);
+	--accent-deep: var(--mint-deep);
+	--accent-tint: var(--mint-tint);
+	--accent-soft: var(--mint-soft);
+	--selection: var(--mint-soft);
+}
+[data-dino="ptero"],
+[data-dino="ptero"] .light,
+[data-dino="ptero"] .dark {
+	--accent: var(--ptero);
+	--accent-deep: var(--ptero-deep);
+	--accent-tint: var(--ptero-tint);
+	--accent-soft: var(--ptero-soft);
+	--selection: var(--ptero-soft);
+}
+[data-dino="brachio"],
+[data-dino="brachio"] .light,
+[data-dino="brachio"] .dark {
+	--accent: var(--brachio);
+	--accent-deep: var(--brachio-deep);
+	--accent-tint: var(--brachio-tint);
+	--accent-soft: var(--brachio-soft);
+	--selection: var(--brachio-soft);
+}
+[data-dino="tricera"],
+[data-dino="tricera"] .light,
+[data-dino="tricera"] .dark {
+	--accent: var(--tricera);
+	--accent-deep: var(--tricera-deep);
+	--accent-tint: var(--tricera-tint);
+	--accent-soft: var(--tricera-soft);
+	--selection: var(--tricera-soft);
+}
+
+/* Species surfaces (ADR 0100 follow-up): the whole theme follows the dinosaur. Each species brings its own
+ * neutrals (T-rex lightness, species hue; scripts/dino-palette.ts), card, brand signals and focus ring, in a light
+ * block and a dark block. Status colors stay put: they read the fixed mint/indigo/amber/red families, not --brand-*.
+ * The dark selectors win over the light ones by specificity (0,2,0), so <html class="dark" data-dino>, a [data-dino]
+ * frame inside .dark and a .dark/.light frame inside [data-dino] all resolve to the nearest theme. rex repeats the
+ * defaults so a T-rex frame inside another species resets. */
+/* @generated dino-palette begin */
+[data-dino="rex"],
+[data-dino="rex"] .light {
+	--n-1: #f9fbfa;
+	--n-2: #f3f6f5;
+	--n-3: #ecefee;
+	--n-4: #e3e7e5;
+	--n-5: #d7dcda;
+	--n-6: #c7ccca;
+	--n-7: #a9aeac;
+	--n-8: #838785;
+	--n-9: #676b6a;
+	--n-10: #505352;
+	--n-11: #303231;
+	--n-12: #141515;
+	--surface: var(--white);
+	--surface-sunken: var(--n-2);
+	--text-inverse-2: var(--n-6);
+	--dino-socket: var(--white);
+}
+.dark[data-dino="rex"],
+.dark [data-dino="rex"],
+[data-dino="rex"] .dark {
+	--n-1: #141615;
+	--n-2: #191c1b;
+	--n-3: #222625;
+	--n-4: #2a2f2e;
+	--n-5: #2e3433;
+	--n-6: #3b4241;
+	--n-7: #5a6461;
+	--n-8: #7a8582;
+	--n-9: #909d99;
+	--n-10: #b7c0bd;
+	--n-11: #d4dad8;
+	--n-12: #ecf0ee;
+	--surface: #1b1e1d;
+	--surface-sunken: var(--n-1);
+	--text-inverse-2: var(--n-7);
+	--dino-socket: var(--n-12);
+}
+[data-dino="ptero"],
+[data-dino="ptero"] .light {
+	--n-1: #fff8fd;
+	--n-2: #fdf1fa;
+	--n-3: #f7eaf4;
+	--n-4: #efe1ec;
+	--n-5: #e4d6e1;
+	--n-6: #d4c6d1;
+	--n-7: #b6a8b3;
+	--n-8: #8f818c;
+	--n-9: #72666f;
+	--n-10: #594f57;
+	--n-11: #362f35;
+	--n-12: #181317;
+	--surface: #fffdfe;
+	--brand-1: #f5b83d;
+	--brand-2: #f2894b;
+	--brand-3: #e8677f;
+	--brand-4: #c45ab3;
+	--brand-5: #8c5be0;
+	--brand-1-deep: #8a5d00;
+	--brand-2-deep: #b04a0a;
+	--brand-3-deep: #c2203f;
+	--brand-4-deep: #a63894;
+	--brand-5-deep: #7442cc;
+	--focus: var(--brand-5-deep);
+	--surface-sunken: var(--n-2);
+	--text-inverse-2: var(--n-6);
+	--dino-socket: var(--white);
+}
+.dark[data-dino="ptero"],
+.dark [data-dino="ptero"],
+[data-dino="ptero"] .dark {
+	--n-1: #1a1318;
+	--n-2: #20181f;
+	--n-3: #2b2229;
+	--n-4: #352a32;
+	--n-5: #3a2e37;
+	--n-6: #493c46;
+	--n-7: #6b5c67;
+	--n-8: #8c7d88;
+	--n-9: #a394a0;
+	--n-10: #c6b9c3;
+	--n-11: #dfd5dd;
+	--n-12: #f3edf2;
+	--surface: #231a21;
+	--brand-1: #f5b83d;
+	--brand-2: #f2894b;
+	--brand-3: #e8677f;
+	--brand-4: #c45ab3;
+	--brand-5: #8c5be0;
+	--brand-1-deep: #f6c15f;
+	--brand-2-deep: #ffb892;
+	--brand-3-deep: #feb3bc;
+	--brand-4-deep: #feaaee;
+	--brand-5-deep: #d0bfff;
+	--focus: var(--brand-5-deep);
+	--surface-sunken: var(--n-1);
+	--text-inverse-2: var(--n-7);
+	--dino-socket: var(--n-12);
+}
+[data-dino="brachio"],
+[data-dino="brachio"] .light {
+	--n-1: #f8fcf3;
+	--n-2: #f1f8ec;
+	--n-3: #eaf1e4;
+	--n-4: #e1e9db;
+	--n-5: #d6decf;
+	--n-6: #c6cebf;
+	--n-7: #a8b0a1;
+	--n-8: #82897b;
+	--n-9: #666d60;
+	--n-10: #4f554a;
+	--n-11: #2f332b;
+	--n-12: #131611;
+	--surface: #fcfefa;
+	--brand-1: #c3d43a;
+	--brand-2: #8cc24c;
+	--brand-3: #55ad5e;
+	--brand-4: #2f9670;
+	--brand-5: #1f7f78;
+	--brand-1-deep: #5f6816;
+	--brand-2-deep: #4d7026;
+	--brand-3-deep: #367a3c;
+	--brand-4-deep: #24755a;
+	--brand-5-deep: #1f7470;
+	--focus: var(--brand-5-deep);
+	--surface-sunken: var(--n-2);
+	--text-inverse-2: var(--n-6);
+	--dino-socket: var(--white);
+}
+.dark[data-dino="brachio"],
+.dark [data-dino="brachio"],
+[data-dino="brachio"] .dark {
+	--n-1: #131710;
+	--n-2: #191d15;
+	--n-3: #22271d;
+	--n-4: #2a3025;
+	--n-5: #2f3529;
+	--n-6: #3c4336;
+	--n-7: #5d6556;
+	--n-8: #7d8576;
+	--n-9: #959d8d;
+	--n-10: #b9c0b3;
+	--n-11: #d5dbd0;
+	--n-12: #edf0e9;
+	--surface: #1a1f16;
+	--brand-1: #c3d43a;
+	--brand-2: #8cc24c;
+	--brand-3: #55ad5e;
+	--brand-4: #2f9670;
+	--brand-5: #1f7f78;
+	--brand-1-deep: #c7d56d;
+	--brand-2-deep: #aedc7f;
+	--brand-3-deep: #91e196;
+	--brand-4-deep: #80e2b8;
+	--brand-5-deep: #86ddd4;
+	--focus: var(--brand-5-deep);
+	--surface-sunken: var(--n-1);
+	--text-inverse-2: var(--n-7);
+	--dino-socket: var(--n-12);
+}
+[data-dino="tricera"],
+[data-dino="tricera"] .light {
+	--n-1: #fff9f7;
+	--n-2: #fff2ed;
+	--n-3: #faebe4;
+	--n-4: #f3e2db;
+	--n-5: #e8d7cf;
+	--n-6: #d8c7bf;
+	--n-7: #b9a9a2;
+	--n-8: #92827b;
+	--n-9: #756660;
+	--n-10: #5c4f4a;
+	--n-11: #382f2b;
+	--n-12: #191311;
+	--surface: #fffdfc;
+	--brand-1: #f0b43c;
+	--brand-2: #ea9238;
+	--brand-3: #de6f3a;
+	--brand-4: #c95343;
+	--brand-5: #a84452;
+	--brand-1-deep: #825c00;
+	--brand-2-deep: #9c4e00;
+	--brand-3-deep: #b03d07;
+	--brand-4-deep: #a52b1c;
+	--brand-5-deep: #8e2737;
+	--focus: var(--brand-5-deep);
+	--surface-sunken: var(--n-2);
+	--text-inverse-2: var(--n-6);
+	--dino-socket: var(--white);
+}
+.dark[data-dino="tricera"],
+.dark [data-dino="tricera"],
+[data-dino="tricera"] .dark {
+	--n-1: #1b1410;
+	--n-2: #221915;
+	--n-3: #2d221e;
+	--n-4: #372b25;
+	--n-5: #3d2f29;
+	--n-6: #4c3c36;
+	--n-7: #6e5d56;
+	--n-8: #907e76;
+	--n-9: #a7958e;
+	--n-10: #c9bab3;
+	--n-11: #e2d6d1;
+	--n-12: #f5edea;
+	--surface: #251b16;
+	--brand-1: #f0b43c;
+	--brand-2: #ea9238;
+	--brand-3: #de6f3a;
+	--brand-4: #c95343;
+	--brand-5: #a84452;
+	--brand-1-deep: #f6c15f;
+	--brand-2-deep: #ffba7d;
+	--brand-3-deep: #ffb799;
+	--brand-4-deep: #ffb5a9;
+	--brand-5-deep: #feb3b9;
+	--focus: var(--brand-5-deep);
+	--surface-sunken: var(--n-1);
+	--text-inverse-2: var(--n-7);
+	--dino-socket: var(--n-12);
+}
+/* @generated dino-palette end */
+
+/* One signal per surface. */
+[data-signal="mint"] { --accent: var(--mint); --accent-deep: var(--mint-deep); --accent-tint: var(--mint-tint); --accent-soft: var(--mint-soft); }
+[data-signal="teal"] { --accent: var(--teal); --accent-deep: var(--teal-deep); --accent-tint: var(--teal-tint); --accent-soft: var(--teal-soft); }
+[data-signal="cyan"] { --accent: var(--cyan); --accent-deep: var(--cyan-deep); --accent-tint: var(--cyan-tint); --accent-soft: var(--cyan-soft); }
+[data-signal="blue"] { --accent: var(--blue); --accent-deep: var(--blue-deep); --accent-tint: var(--blue-tint); --accent-soft: var(--blue-soft); }
+[data-signal="indigo"] { --accent: var(--indigo); --accent-deep: var(--indigo-deep); --accent-tint: var(--indigo-tint); --accent-soft: var(--indigo-soft); }
+
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--dur-micro: 0ms;
+		--dur-state: 0ms;
+		--dur-enter: 0ms;
+		--dur-scene: 0ms;
+		--dur-character: 0ms;
+	}
+}

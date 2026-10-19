@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@import "../../../packages/ui/src/styles/index.css";
+@source "../../../packages/ui/src";
+
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+
+html {
+	scroll-behavior: smooth;
+	scroll-padding-top: 24px;
+}
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+}
+.dot-paper {
+	background-image: radial-gradient(circle, var(--dot-ink) 1px, transparent 1.2px);
+	background-size: 20px 20px;
+	background-position: 10px 10px;
+}

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>dinobot</title>
+		<script>
+			try {
+				const t = localStorage.getItem("dn-theme") || "system";
+				const dark = t === "dark" || (t === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+				if (dark) document.documentElement.classList.add("dark");
+				// Dinosaur theme (ADR 0100); src/lib/theme.ts useDinoSync keeps it current.
+				const d = localStorage.getItem("dn-dino");
+				document.documentElement.dataset.dino = d === "ptero" || d === "brachio" || d === "tricera" ? d : "rex";
+				// UI language (packages/ui/src/i18n): read before any module runs, because module-level text is looked up
+				// when its module loads. "" follows the OS; GeneralTab reloads the window when it changes.
+				const saved = JSON.parse(localStorage.getItem("dn-settings") || "{}").locale;
+				const os = (window.dinobotDesktop && window.dinobotDesktop.locale) || navigator.language || "";
+				window.__dnLanguage = saved === "ko" || saved === "en" ? saved : /^ko\b/i.test(os) ? "ko" : "en";
+				document.documentElement.lang = window.__dnLanguage;
+			} catch {}
+		</script>
+	</head>
+	<body>
+		<div id="root"></div>
+		<script type="module" src="/src/main.tsx"></script>
+	</body>
+</html>

@@ -1,0 +1,102 @@
+{
+  "name": "@dinobot/desktop",
+  "productName": "dinobot",
+  "version": "0.1.2-local.browser.1",
+  "private": true,
+  "description": "dinobot desktop",
+  "main": "dist/main.cjs",
+  "scripts": {
+    "build:main": "bun scripts/build-main.ts",
+    "build:web": "bun run --cwd ../web build",
+    "build": "bun run build:web && bun run build:main",
+    "stage:daemon": "bun scripts/stage-daemon.ts",
+    "start": "electron .",
+    "dist": "bun run build && bun scripts/stage-daemon.ts --os win --arch x64 && electron-builder --win nsis --x64 --publish never",
+    "dist:mac": "bun run build && bun scripts/stage-daemon.ts --os mac --arch arm64 --arch x64 && electron-builder --mac zip --arm64 --x64 --publish never",
+    "dist:win": "bun run build && bun scripts/stage-daemon.ts --os win --arch x64 && electron-builder --win nsis --x64 --publish never"
+  },
+  "dinobotDaemon": {
+    "dinobot": "0.7.15-local.browser.1",
+    "bun": "1.4.3"
+  },
+  "devDependencies": {
+    "electron": "^44.7.2",
+    "electron-builder": "^26.15.3",
+    "yaml": "^2.9.1"
+  },
+  "build": {
+    "appId": "dev.dinobot.desktop",
+    "productName": "dinobot",
+    "copyright": "dinobot",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/main.cjs",
+      "dist/main.jsc",
+      "dist/preload.cjs",
+      "build/icon.png",
+      "package.json"
+    ],
+    "afterExtract": "./scripts/bytecode.cjs",
+    "afterPack": "./scripts/bytecode.cjs",
+    "extraResources": [
+      {
+        "from": "../web/dist",
+        "to": "web"
+      },
+      {
+        "from": "vendor/daemon/${os}-${arch}",
+        "to": "daemon",
+        "filter": ["**/*", "!node_modules"]
+      },
+      {
+        "from": "vendor/daemon/${os}-${arch}/node_modules",
+        "to": "daemon/node_modules"
+      }
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "dinobot-setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "dinobot"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.developer-tools",
+      "icon": "build/icon.png",
+      "identity": "-",
+      "artifactName": "dinobot-${version}-mac-${arch}.${ext}",
+      "hardenedRuntime": false
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Development"
+    }
+  }
+}

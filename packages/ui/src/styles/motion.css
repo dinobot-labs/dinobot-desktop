@@ -1,0 +1,146 @@
+/*
+ * Motion utilities.
+ *
+ * Every loop is stepped on a shared 50 ms cadence (20 fps): the shimmer runs 2000 ms / 40 steps, the spinner
+ * 1300 ms / 26 steps, the dino run cycle 250 ms / 2 frames. Shared steps let concurrent loops repaint on the same
+ * frames. Under prefers-reduced-motion every loop stops on a readable rest frame.
+ */
+
+/* ---------------------------------------------------------------- Shimmer
+ * A light band crossing a one-line label. The label is painted by its own background (clipped to the glyphs): ink
+ * everywhere except a soft band of --shimmer-hi in the middle of a 3x wide gradient that slides from right to left.
+ * 2000 ms in 40 steps. --shimmer-hi defaults to a lighter ink; .shimmer-signal uses the current brand signal. */
+@keyframes dn-shimmer {
+	from {
+		background-position: 100% 0;
+	}
+	to {
+		background-position: 0% 0;
+	}
+}
+@keyframes dn-shimmer-mask {
+	from {
+		mask-position: 100% 0;
+	}
+	to {
+		mask-position: 0% 0;
+	}
+}
+.shimmer {
+	--shimmer-hi: color-mix(in oklch, currentColor 30%, var(--surface));
+	background-image: linear-gradient(105deg, currentColor 42%, var(--shimmer-hi) 50%, currentColor 58%);
+	background-size: 300% 100%;
+	background-repeat: no-repeat;
+	background-clip: text;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	animation: dn-shimmer var(--loop-shimmer) steps(40, end) infinite;
+}
+.dark .shimmer {
+	--shimmer-hi: color-mix(in oklch, currentColor 40%, white);
+}
+.shimmer.shimmer-signal {
+	--shimmer-hi: var(--accent);
+}
+/* Whole indicators (icon + label): fade a band through an alpha mask instead of recoloring glyphs. */
+.shimmer-group {
+	mask-image: linear-gradient(105deg, #000 42%, rgb(0 0 0 / 0.35) 50%, #000 58%);
+	mask-size: 300% 100%;
+	mask-repeat: no-repeat;
+	animation: dn-shimmer-mask var(--loop-shimmer) steps(40, end) infinite;
+}
+
+/* ---------------------------------------------------------------- Scan line
+ * A 2px track with one signal band travelling across it: running tool cards, DAG nodes, the composer while a
+ * turn streams. Transform only. */
+@keyframes dn-scan {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(250%);
+	}
+}
+.dn-scan {
+	position: absolute;
+	inset-inline: 0;
+	bottom: 0;
+	height: 2px;
+	overflow: hidden;
+	pointer-events: none;
+}
+.dn-scan::after {
+	content: "";
+	position: absolute;
+	inset-block: 0;
+	left: 0;
+	width: 40%;
+	background: linear-gradient(90deg, transparent, var(--scan-color, var(--accent)) 50%, transparent);
+	animation: dn-scan 1600ms steps(32, end) infinite;
+}
+
+/* ---------------------------------------------------------------- Spinner (stepped rotation) */
+@keyframes dn-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+.dn-spin {
+	animation: dn-spin var(--loop-spinner) steps(26, end) infinite;
+	transform-origin: center;
+	transform-box: fill-box;
+}
+.dn-spin-slow {
+	animation: dn-spin calc(var(--loop-spinner) * 2) steps(52, end) infinite;
+	transform-origin: center;
+	transform-box: fill-box;
+}
+
+/* ---------------------------------------------------------------- Pulse (waiting for a person) */
+@keyframes dn-breathe {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.35;
+	}
+}
+.dn-breathe {
+	animation: dn-breathe 2000ms steps(40, end) infinite;
+}
+
+/* ---------------------------------------------------------------- Enter */
+@keyframes dn-enter {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+}
+.dn-enter {
+	animation: dn-enter var(--dur-enter) var(--motion-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.shimmer {
+		animation: none;
+		background-image: none;
+		-webkit-text-fill-color: currentColor;
+	}
+	.shimmer-group {
+		animation: none;
+		mask-image: none;
+	}
+	.dn-scan::after {
+		animation: none;
+		width: 100%;
+		opacity: 0.6;
+		background: var(--scan-color, var(--accent));
+	}
+	.dn-spin,
+	.dn-spin-slow,
+	.dn-breathe,
+	.dn-enter {
+		animation: none;
+	}
+}

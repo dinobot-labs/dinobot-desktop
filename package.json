@@ -1,0 +1,28 @@
+{
+  "name": "dinobot-desktop",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "bun run --cwd apps/web dev",
+    "dev:styleguide": "bun run --cwd apps/styleguide dev",
+    "build": "bun run --cwd apps/styleguide build && bun run --cwd apps/desktop build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "bun test packages apps scripts",
+    "desktop": "bun run --cwd apps/desktop build && bun run --cwd apps/desktop start",
+    "check:public": "bun scripts/public-snapshot-guard.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.3",
+    "playwright-core": "^1.64.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4"
+  },
+  "trustedDependencies": [
+    "electron"
+  ],
+  "license": "PolyForm-Noncommercial-1.0.0"
+}

@@ -1,0 +1,217 @@
+/*
+ * Prose: rendered markdown (assistant answers, reports). Same tokens as the components: ink text, hairline
+ * structure, sunken wells for code, the accent only for links. Class names are stable so any markdown renderer that
+ * emits plain HTML (h1-h6, p, ul/ol, blockquote, pre/code, table, a, hr, img) can use it.
+ */
+.md {
+	display: flex;
+	flex-direction: column;
+	gap: 0.65em;
+	font-size: var(--fs-md);
+	line-height: var(--lh-chat);
+	color: var(--text-1);
+	overflow-wrap: anywhere;
+}
+.md > * {
+	margin: 0;
+}
+.md h1,
+.md h2 {
+	font-size: var(--fs-lg);
+	font-weight: 600;
+	letter-spacing: var(--tr-title);
+	line-height: 1.35;
+	margin-top: 0.4em;
+}
+.md h3,
+.md h4,
+.md h5,
+.md h6 {
+	font-size: var(--fs-md);
+	font-weight: 600;
+	margin-top: 0.3em;
+}
+.md ul,
+.md ol {
+	padding-left: 1.35em;
+	display: flex;
+	flex-direction: column;
+	gap: 0.25em;
+}
+.md ul {
+	list-style: disc;
+}
+.md ol {
+	list-style: decimal;
+}
+.md li > ul,
+.md li > ol {
+	margin-top: 0.25em;
+}
+.md li::marker {
+	color: var(--text-3);
+}
+.md a {
+	color: var(--accent-deep);
+	text-decoration: underline;
+	text-decoration-color: var(--line-strong);
+	text-underline-offset: 2px;
+	cursor: pointer;
+}
+.md a:hover {
+	text-decoration-color: var(--accent-deep);
+}
+.md strong {
+	font-weight: 600;
+}
+.md :not(pre) > code {
+	font-family: var(--font-code);
+	font-size: 0.9em;
+	background: var(--surface-hover);
+	border-radius: var(--radius-1);
+	padding: 0.05em 0.3em;
+}
+.md blockquote {
+	border-left: 2px solid var(--line-strong);
+	padding-left: 0.85em;
+	color: var(--text-2);
+}
+.md hr {
+	border: 0;
+	border-top: 1px solid var(--line);
+}
+.md img {
+	max-height: 20rem;
+	border-radius: var(--radius-3);
+	border: 1px solid var(--line);
+}
+.md .md-image {
+	color: var(--text-3);
+}
+.md .md-code {
+	position: relative;
+}
+.md pre {
+	margin: 0;
+	overflow-x: auto;
+	border: 1px solid var(--line);
+	border-radius: var(--radius-3);
+	background: var(--surface-sunken);
+	padding: 0.7em 0.85em;
+	font-family: var(--font-code);
+	font-size: 0.8125rem;
+	line-height: 1.6;
+}
+.md .md-copy {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	height: 22px;
+	padding: 0 8px;
+	border-radius: var(--radius-2);
+	font-size: var(--fs-micro);
+	color: var(--text-3);
+	background: var(--surface);
+	border: 1px solid var(--line);
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity var(--dur-micro) var(--motion-standard);
+}
+.md .md-code:hover .md-copy,
+.md .md-copy:focus-visible {
+	opacity: 1;
+}
+.md .md-table {
+	overflow-x: auto;
+}
+.md table {
+	border-collapse: collapse;
+	font-size: var(--fs-sm);
+	width: 100%;
+}
+.md th,
+.md td {
+	border: 1px solid var(--line);
+	padding: 0.35em 0.65em;
+	text-align: left;
+	vertical-align: top;
+}
+.md th {
+	background: var(--surface-sunken);
+	font-weight: 600;
+}
+
+/* Code tokens: ink for structure, one brand signal per role (keywords brand-5, strings brand-1, titles brand-4,
+ * attributes brand-2; the T-rex indigo, mint, blue, teal), numbers amber, comments muted. */
+.md .hljs-keyword,
+.md .hljs-built_in,
+.md .hljs-selector-tag,
+.md .hljs-meta .hljs-keyword {
+	color: var(--brand-5-deep);
+}
+.md .hljs-string,
+.md .hljs-regexp,
+.md .hljs-addition,
+.md .hljs-attr + .hljs-string {
+	color: var(--brand-1-deep);
+}
+.md .hljs-number,
+.md .hljs-literal,
+.md .hljs-variable.language_ {
+	color: var(--amber-deep);
+}
+.md .hljs-title,
+.md .hljs-title.function_,
+.md .hljs-title.class_,
+.md .hljs-section {
+	color: var(--brand-4-deep);
+}
+.md .hljs-attr,
+.md .hljs-attribute,
+.md .hljs-property,
+.md .hljs-name,
+.md .hljs-tag {
+	color: var(--brand-2-deep);
+}
+.md .hljs-comment,
+.md .hljs-quote,
+.md .hljs-meta {
+	color: var(--text-3);
+	font-style: italic;
+}
+.md .hljs-deletion {
+	color: var(--red-deep);
+}
+.md .hljs-type,
+.md .hljs-params {
+	color: var(--text-2);
+}
+
+/* Math (KaTeX). Display math scrolls sideways instead of wrapping; ink follows the theme text color. */
+.md .katex {
+	font-size: 1.1em;
+	color: var(--text-1);
+	overflow-wrap: normal;
+	white-space: nowrap;
+}
+.md .md-math-block {
+	display: block;
+	overflow-x: auto;
+	overflow-y: hidden;
+	padding: 0.35em 0.1em;
+	text-align: center;
+}
+.md .md-math-block .katex-display {
+	margin: 0;
+}
+/* Korean inside \text{} uses the app's Hangul face instead of the browser's serif fallback. */
+.md .katex .hangul_fallback,
+.md .katex .cjk_fallback {
+	font-family: var(--font-ui);
+}
+.md .md-math-pending {
+	font-family: var(--font-mono, ui-monospace, monospace);
+	font-size: 0.92em;
+	color: var(--text-2);
+	white-space: pre-wrap;
+}

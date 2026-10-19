@@ -1,0 +1,175 @@
+/*
+ * @dinobot/ui stylesheet. Import after Tailwind:
+ *   @import "tailwindcss";
+ *   @import "<path>/packages/ui/src/styles/index.css";
+ *   @source "<path>/packages/ui/src";
+ */
+@import "./tokens.css";
+@import "./motion.css";
+@import "./dino.css";
+@import "./prose.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+	/* Only design-system colors: no Tailwind palette, so off-system colors fail loudly. */
+	--color-*: initial;
+	--color-transparent: transparent;
+	--color-current: currentColor;
+	--color-white: #ffffff;
+	--color-black: #000000;
+
+	--color-bg: var(--bg);
+	--color-band: var(--bg-band);
+	--color-surface: var(--surface);
+	--color-sunken: var(--surface-sunken);
+	--color-hover: var(--surface-hover);
+	--color-pressed: var(--surface-pressed);
+	--color-inverse: var(--surface-inverse);
+	--color-line: var(--line);
+	--color-line-strong: var(--line-strong);
+	--color-line-ui: var(--line-ui);
+	--color-fg: var(--text-1);
+	--color-fg-2: var(--text-2);
+	--color-fg-3: var(--text-3);
+	--color-fg-disabled: var(--text-disabled);
+	--color-fg-inverse: var(--text-inverse);
+	--color-fg-inverse-2: var(--text-inverse-2);
+	--color-focus: var(--focus);
+	--color-selection: var(--selection);
+	--color-scrim: var(--scrim);
+
+	--color-accent: var(--accent);
+	--color-accent-deep: var(--accent-deep);
+	--color-accent-tint: var(--accent-tint);
+	--color-accent-soft: var(--accent-soft);
+
+	--color-mint: var(--mint);
+	--color-mint-deep: var(--mint-deep);
+	--color-mint-tint: var(--mint-tint);
+	--color-mint-soft: var(--mint-soft);
+	--color-teal: var(--teal);
+	--color-teal-deep: var(--teal-deep);
+	--color-teal-tint: var(--teal-tint);
+	--color-teal-soft: var(--teal-soft);
+	--color-cyan: var(--cyan);
+	--color-cyan-deep: var(--cyan-deep);
+	--color-cyan-tint: var(--cyan-tint);
+	--color-cyan-soft: var(--cyan-soft);
+	--color-blue: var(--blue);
+	--color-blue-deep: var(--blue-deep);
+	--color-blue-tint: var(--blue-tint);
+	--color-blue-soft: var(--blue-soft);
+	--color-indigo: var(--indigo);
+	--color-indigo-deep: var(--indigo-deep);
+	--color-indigo-tint: var(--indigo-tint);
+	--color-indigo-soft: var(--indigo-soft);
+	--color-brand-1: var(--brand-1);
+	--color-brand-2: var(--brand-2);
+	--color-brand-3: var(--brand-3);
+	--color-brand-4: var(--brand-4);
+	--color-brand-5: var(--brand-5);
+	--color-brand-1-deep: var(--brand-1-deep);
+	--color-brand-2-deep: var(--brand-2-deep);
+	--color-brand-3-deep: var(--brand-3-deep);
+	--color-brand-4-deep: var(--brand-4-deep);
+	--color-brand-5-deep: var(--brand-5-deep);
+	--color-red: var(--red);
+	--color-red-deep: var(--red-deep);
+	--color-red-tint: var(--red-tint);
+	--color-red-soft: var(--red-soft);
+	--color-amber: var(--amber);
+	--color-amber-deep: var(--amber-deep);
+	--color-amber-tint: var(--amber-tint);
+	--color-amber-soft: var(--amber-soft);
+
+	--color-status-idle: var(--status-idle);
+	--color-status-idle-fg: var(--status-idle-fg);
+	--color-status-running: var(--status-running);
+	--color-status-running-fg: var(--status-running-fg);
+	--color-status-running-tint: var(--status-running-tint);
+	--color-status-waiting: var(--status-waiting);
+	--color-status-waiting-fg: var(--status-waiting-fg);
+	--color-status-waiting-tint: var(--status-waiting-tint);
+	--color-status-success: var(--status-success);
+	--color-status-success-fg: var(--status-success-fg);
+	--color-status-success-tint: var(--status-success-tint);
+	--color-status-failed: var(--status-failed);
+	--color-status-failed-fg: var(--status-failed-fg);
+	--color-status-failed-tint: var(--status-failed-tint);
+	--color-status-cancelled: var(--status-cancelled);
+	--color-status-cancelled-fg: var(--status-cancelled-fg);
+
+	--font-sans: var(--font-ui);
+	--font-mono: var(--font-code);
+
+	--text-micro: var(--fs-micro);
+	--text-micro--line-height: 1.35;
+	--text-xs: var(--fs-xs);
+	--text-xs--line-height: 1.4;
+	--text-sm: var(--fs-sm);
+	--text-sm--line-height: var(--lh-ui);
+	--text-md: var(--fs-md);
+	--text-md--line-height: var(--lh-chat);
+	--text-lg: var(--fs-lg);
+	--text-lg--line-height: 1.4;
+	--text-xl: var(--fs-xl);
+	--text-xl--line-height: 1.3;
+	--text-2xl: var(--fs-2xl);
+	--text-2xl--line-height: var(--lh-tight);
+	--text-display: var(--fs-display);
+	--text-display--line-height: 1.04;
+
+	--radius-xs: var(--radius-1);
+	--radius-sm: var(--radius-2);
+	--radius-md: var(--radius-3);
+	--radius-lg: var(--radius-4);
+	--radius-xl: var(--radius-5);
+	--radius-2xl: var(--radius-6);
+
+	--shadow-float: var(--elevation-float);
+	--shadow-pop: var(--elevation-pop);
+
+	--ease-standard: var(--motion-standard);
+	--ease-out: var(--motion-out);
+	--ease-spring: var(--spring-snappy);
+}
+
+@layer base {
+	*,
+	::before,
+	::after {
+		border-color: var(--line);
+	}
+	html {
+		font-family: var(--font-ui);
+		font-size: 16px;
+		-webkit-font-smoothing: antialiased;
+		text-rendering: optimizeLegibility;
+		font-feature-settings: "ss01", "cv11";
+	}
+	body {
+		background: var(--bg);
+		color: var(--text-1);
+		font-size: var(--fs-sm);
+		line-height: var(--lh-ui);
+	}
+	::selection {
+		background: var(--selection);
+		color: var(--text-1);
+	}
+	:focus-visible {
+		outline: 2px solid var(--focus);
+		outline-offset: 2px;
+	}
+	code,
+	kbd,
+	pre,
+	samp {
+		font-family: var(--font-code);
+	}
+	[lang|="ko"] {
+		word-break: keep-all;
+		line-break: strict;
+	}
+}
