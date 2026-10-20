@@ -6,6 +6,10 @@
 
 Source-available Electron desktop client for Dinobot, with a React interface and shared UI components. Free for uses permitted by PolyForm Noncommercial 1.0.0; not OSI open source. Commercial use requires separate permission from the relevant rights holders. Contact: dev0jsh@gmail.com.
 
+## Demo
+
+https://github.com/user-attachments/assets/1955b0cb-3f0f-4266-b968-35b7844964b7
+
 ## Build the source
 
 Install Bun 1.4.3 and Node.js 22 or newer.
