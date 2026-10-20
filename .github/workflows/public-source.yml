@@ -1,7 +1,29 @@
 name: public-source
 on:
   pull_request:
+    # Only prose: source Markdown, executable docs and fixtures still run CI.
+    paths-ignore:
+      - 'README*.md'
+      - 'CONTRIBUTING.md'
+      - 'CODE_OF_CONDUCT.md'
+      - 'SECURITY.md'
+      - 'docs/*.md'
+      - 'docs/wiki/**/*.md'
+      - 'wiki/**/*.md'
+      - '.github/ISSUE_TEMPLATE/*.md'
+      - '.github/*[Tt][Ee][Mm][Pp][Ll][Aa][Tt][Ee].md'
   push:
+    # Only prose: source Markdown, executable docs and fixtures still run CI.
+    paths-ignore:
+      - 'README*.md'
+      - 'CONTRIBUTING.md'
+      - 'CODE_OF_CONDUCT.md'
+      - 'SECURITY.md'
+      - 'docs/*.md'
+      - 'docs/wiki/**/*.md'
+      - 'wiki/**/*.md'
+      - '.github/ISSUE_TEMPLATE/*.md'
+      - '.github/*[Tt][Ee][Mm][Pp][Ll][Aa][Tt][Ee].md'
     branches: [main]
 permissions:
   contents: read
