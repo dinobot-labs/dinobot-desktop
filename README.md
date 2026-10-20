@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/assets/logo.svg" alt="Dinobot logo" width="160">
+</p>
+
 # Dinobot Desktop
 
 Source-available Electron desktop client for Dinobot, with a React interface and shared UI components. Free for uses permitted by PolyForm Noncommercial 1.0.0; not OSI open source. Commercial use requires separate permission from the relevant rights holders. Contact: dev0jsh@gmail.com.
