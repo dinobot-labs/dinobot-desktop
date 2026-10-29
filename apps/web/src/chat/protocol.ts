@@ -22,7 +22,7 @@ export interface SideState {
 	workflow: WorkflowStatus | null;
 	dag: DagView | null;
 	agent: AgentInfo;
-	usage: { contextTokens: number; totalTokens: number; cost: number };
+	usage: { contextTokens: number; sent: number; output: number; totalTokens: number; cost: number };
 	ledger: UsageState;
 	call: { tps?: number; cacheRatio?: number };
 	snapshots: number;

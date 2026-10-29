@@ -5,8 +5,8 @@ import { join } from "node:path";
 import { isNewerStableVersion } from "./update.ts";
 
 /**
- * Updates of the desktop app itself, for copies installed by the invite installer (scripts/install). The installer
- * leaves ~/.dinobot/desktop/install.json with the invite base URL; without it (dev builds, hand-copied apps) both
+ * Updates of the desktop app itself, for copies installed by the installer (scripts/install). The installer
+ * leaves ~/.dinobot/desktop/install.json with the download base URL (public or an older invite); without it (dev builds, hand-copied apps) both
  * calls are no-ops. The check never throws; apply starts the installer detached, which closes this app only after
  * the new build is downloaded and verified, then starts it again.
  */
@@ -15,14 +15,15 @@ export type DesktopUpdate = { current: string; latest: string; newer: boolean };
 type Options = { env?: NodeJS.ProcessEnv; fetch?: typeof fetch; platform?: NodeJS.Platform };
 
 const TIMEOUT_MS = 5_000;
-const BASE_RE = /^https:\/\/[A-Za-z0-9.-]+(:\d+)?\/i\/[A-Za-z0-9_-]{32,64}$|^http:\/\/(127\.0\.0\.1|localhost):\d+\/i\/[A-Za-z0-9_-]{32,64}$/;
+/** A download base: an origin (public installs, e.g. https://updates.example.test) or an invite base (`<origin>/i/<token>`). */
+const BASE_RE = /^https:\/\/[A-Za-z0-9.-]+(:\d+)?(\/i\/[A-Za-z0-9_-]{32,64})?$|^http:\/\/(127\.0\.0\.1|localhost):\d+(\/i\/[A-Za-z0-9_-]{32,64})?$/;
 const VERSION_RE = /^\d+\.\d+\.\d+$/;
 
 export function stateDir(env: NodeJS.ProcessEnv = process.env): string {
 	return env.DINOBOT_DESKTOP_HOME || join(homedir(), ".dinobot", "desktop");
 }
 
-/** The invite base URL from install.json, or null when this copy was not installed by the installer. */
+/** The download base URL from install.json, or null when this copy was not installed by the installer. */
 export function installBase(env: NodeJS.ProcessEnv = process.env): string | null {
 	try {
 		const state = JSON.parse(readFileSync(join(stateDir(env), "install.json"), "utf8")) as { base?: unknown };

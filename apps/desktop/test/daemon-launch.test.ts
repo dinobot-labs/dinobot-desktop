@@ -28,6 +28,15 @@ test.if(process.platform === "win32" && hasBun)("a Windows bun launcher resolves
 	expect(launch.prefix).toEqual([join(dir, "install", "global", "node_modules", "pkg", "main.js")]);
 });
 
+test.if(hasBun)("a source checkout's src/main.ts (DINOBOT_BIN) runs with bun", async () => {
+	const script = join(dir, "dinobot", "src", "main.ts");
+	mkdirSync(join(dir, "dinobot", "src"), { recursive: true });
+	writeFileSync(script, "");
+	const launch = await daemonLaunch(script);
+	expect(launch.file).toMatch(/bun(\.exe)?$/i);
+	expect(launch.prefix).toEqual([script]);
+});
+
 test("anything else runs as is", async () => {
 	writeFileSync(join(dir, "plain.exe"), "");
 	expect(await daemonLaunch(join(dir, "plain.exe"))).toEqual({ file: join(dir, "plain.exe"), prefix: [] });

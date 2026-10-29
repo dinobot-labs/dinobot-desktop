@@ -55,7 +55,8 @@ export type EnsurePorts = {
 };
 
 export type EnsureLimits = { readonly startMs: number; readonly pollMs: number; readonly graceMs: number; readonly attempts: number };
-export const DEFAULT_ENSURE_LIMITS: EnsureLimits = { startMs: 20_000, pollMs: 150, graceMs: 2_000, attempts: 4 };
+// A daemon with a large database needs 10-25 s to answer on a cold start (disk cache, antivirus scan), so wait for a live child.
+export const DEFAULT_ENSURE_LIMITS: EnsureLimits = { startMs: 90_000, pollMs: 150, graceMs: 2_000, attempts: 4 };
 
 const DEFAULT_PORT = 8786;
 const samePath = (a: string, b: string): boolean => (process.platform === "win32" ? a.toLowerCase() === b.toLowerCase() : a === b);
@@ -168,7 +169,7 @@ export async function ensureDaemonWith(ports: EnsurePorts, limits: EnsureLimits 
 			if (now.kind === "foreign" || IN_USE.test(lastLog.split(/\r?\n/).slice(-8).join("\n"))) continue;
 			return { ok: false, error: `the dinobot daemon exited while starting (127.0.0.1:${port})`, logTail: lastLog || (await ports.logTail(config.dataDir)) };
 		}
-		return { ok: false, error: `dinobot daemon did not come up on 127.0.0.1:${port}`, logTail: await ports.logTail(config.dataDir) };
+		return { ok: false, timedOut: true, error: `dinobot daemon did not come up on 127.0.0.1:${port}`, logTail: await ports.logTail(config.dataDir) };
 	}
 	return { ok: false, error: `could not find a port for the dinobot daemon (tried ${[...tried].join(", ")})`, ...(lastLog ? { logTail: lastLog } : {}) };
 }

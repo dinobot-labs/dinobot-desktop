@@ -89,7 +89,7 @@ export interface ChatData {
 	workflow: WorkflowStatus | null;
 	dag: DagView | null;
 	agent: AgentInfo;
-	usage: { contextTokens: number; totalTokens: number; cost: number };
+	usage: { contextTokens: number; sent: number; output: number; totalTokens: number; cost: number };
 	/** The thread's usage ledger (per model and per tool), as the daemon keeps it. */
 	ledger: UsageState;
 	/** Last live model call: tok/s and cache ratio (TUI T145). */
@@ -125,7 +125,7 @@ export function createChatData(): ChatData {
 		workflow: null,
 		dag: null,
 		agent: {},
-		usage: { contextTokens: 0, totalTokens: 0, cost: 0 },
+		usage: { contextTokens: 0, sent: 0, output: 0, totalTokens: 0, cost: 0 },
 		ledger: { models: {}, tools: {} },
 		call: {},
 		turn: { outputTokens: 0, generationMs: 0, firstTokenAt: undefined },
@@ -532,8 +532,9 @@ function applyAssistant(d: ChatData, message: AssistantMessage, now: number, fin
 function setContextTokens(d: ChatData, usage: Usage | undefined): void {
 	if (!usage) return;
 	const context = contextTokensOf(usage);
-	if (context === 0 || context === d.usage.contextTokens) return;
-	d.usage = { ...d.usage, contextTokens: context };
+	const sent = usage.input + usage.cacheRead + usage.cacheWrite;
+	if (context === 0 || (context === d.usage.contextTokens && sent === d.usage.sent && usage.output === d.usage.output)) return;
+	d.usage = { ...d.usage, contextTokens: context, sent, output: usage.output };
 	bump(d);
 }
 
@@ -566,9 +567,12 @@ export function ingestEntry(d: ChatData, entry: EntryRecord, now: number): void 
 			if (message?.role === "toolResult") ingestToolResult(d, message, now, isAbortedResult(entry));
 			return;
 		case "pi.reset":
+			d.usage = { ...d.usage, contextTokens: 0, sent: 0, output: 0 };
 			notice(d, "새 컨텍스트", "info");
 			return;
 		case "pi.compaction":
+			// The old measurement describes the pre-compaction request, not the new context.
+			d.usage = { ...d.usage, contextTokens: 0, sent: 0, output: 0 };
 			notice(d, "컨텍스트를 압축했어요", "info");
 			return;
 		case "pi.system": {

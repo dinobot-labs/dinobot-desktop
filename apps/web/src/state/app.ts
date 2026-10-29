@@ -5,7 +5,10 @@
 import { type DaemonInfo, newThreadName, type SessionStatus, type SessionsEvent, type ThreadModelState } from "@dinobot/contracts";
 import { type ManifestApplyRequest } from "@dinobot/contracts";
 import { toast } from "@dinobot/ui";
+import { createElement } from "react";
 import { create } from "zustand";
+import { ReportButton } from "../dialogs/ReportDialog.tsx";
+import { bindReport, reportAvailable, reportThreadFor } from "./report.ts";
 import { type RunSurface, startCommand } from "./command-runner.ts";
 import { startUsagePolling } from "./usage.ts";
 import { loadCommands, useCommands } from "./commands.ts";
@@ -84,6 +87,9 @@ export const useApp = create<AppState>(() => ({
 
 const set = useApp.setState;
 const get = useApp.getState;
+
+// A problem report includes the open thread's conversation (daemon mode).
+bindReport({ thread: () => reportThreadFor(get().activeKey, get().threads) });
 
 // ---------------------------------------------------------------- thread list
 
@@ -239,7 +245,9 @@ async function onOnline(): Promise<void> {
 	await refreshThreads().catch((error) => set({ connectionError: String(error) }));
 	startUsagePolling();
 	void loadCommands().then(() => set({ olderDaemon: !useCommands.getState().loaded }));
-	if (desktop?.checkUpdate && get().daemon?.version && !get().config?.bundled) void desktop.checkUpdate(get().daemon?.version ?? "").then((u) => u && set({ update: u }));
+	// The main process decides by the connected daemon's pid whether `dinobot update` applies (not for the bundled daemon).
+	const connected = get().daemon;
+	if (desktop?.checkUpdate && connected?.version) void desktop.checkUpdate(connected.version, connected.pid).then((u) => set({ update: u ?? null }));
 	if (desktop?.checkDesktopUpdate) void desktop.checkDesktopUpdate().then((u) => u && set({ desktopUpdate: u }));
 	sessionsStreamClose?.();
 	sessionsStreamClose = openStream(
@@ -306,7 +314,27 @@ export async function startDaemon(): Promise<void> {
 			toast({ tone: "info", duration: 10_000, title: `${result.movedFrom}번 포트를 다른 프로그램이 쓰고 있어서 ${result.port}번으로 옮겼어요`, ...(config?.manifestPath ? { body: `${config.manifestPath}의 api.port를 바꿨어요.` } : {}) });
 		}
 		await onOnline();
-	} else set({ connection: "offline", connectionError: result.error ?? "데몬을 시작하지 못했어요", ...(result.logTail ? { logTail: result.logTail } : {}) });
+	} else {
+		set({ connection: "offline", connectionError: result.error ?? "데몬을 시작하지 못했어요", ...(result.logTail ? { logTail: result.logTail } : {}) });
+		if (result.timedOut) void reconnectWhenDaemonAnswers();
+	}
+}
+
+let lateWatch = false;
+/** The daemon process is alive but slow (large database, cold disk): connect by itself once it answers instead of leaving the error screen up. */
+async function reconnectWhenDaemonAnswers(): Promise<void> {
+	if (lateWatch) return;
+	lateWatch = true;
+	try {
+		const deadline = Date.now() + 5 * 60_000;
+		while (Date.now() < deadline && get().connection === "offline") {
+			await new Promise((r) => setTimeout(r, 2_000));
+			if (get().connection !== "offline") return;
+			if (await api.healthy()) return void (await startDaemon());
+		}
+	} finally {
+		lateWatch = false;
+	}
 }
 
 export async function restartDaemon(): Promise<string | null> {
@@ -467,7 +495,13 @@ async function applySetup(request: ManifestApplyRequest): Promise<void> {
 		const outcome = await desktop.setupApply(request, { pid: info.pid, owner: info.owner }, port);
 		set({ applyOutcome: outcome });
 		const o = outcome as { status: string; text?: string; level?: string; changes?: string[]; logPath?: string };
-		toast({ tone: o.level === "error" ? "error" : o.status === "applied" ? "success" : "waiting", title: o.text?.split("\n")[0] ?? o.status, body: [o.text?.split("\n").slice(1).join("\n"), o.changes?.join(", "), o.logPath ? `로그: ${o.logPath}` : ""].filter(Boolean).join("\n") || undefined, duration: 0 });
+		toast({
+			tone: o.level === "error" ? "error" : o.status === "applied" ? "success" : "waiting",
+			title: o.text?.split("\n")[0] ?? o.status,
+			body: [o.text?.split("\n").slice(1).join("\n"), o.changes?.join(", "), o.logPath ? `로그: ${o.logPath}` : ""].filter(Boolean).join("\n") || undefined,
+			...(o.level === "error" && reportAvailable() ? { actions: createElement(ReportButton, { trigger: "setup-failed", variant: "secondary", size: "xs", testId: "report-setup-failed" }) } : {}),
+			duration: 0,
+		});
 		await connect();
 		const key = get().activeKey;
 		if (key) sessionFor(key).start();

@@ -10,4 +10,4 @@ declare global {
 export const desktop: DesktopBridge | undefined = typeof window === "undefined" ? undefined : window.dinobotDesktop;
 export const isDesktop = desktop !== undefined;
 export const platform: string = desktop?.platform ?? (typeof navigator !== "undefined" && /Mac/.test(navigator.platform) ? "darwin" : "web");
-export type { DaemonConfig, DaemonStartResult, MenuCommand } from "../../../desktop/src/bridge-types.ts";
+export type { DaemonConfig, DaemonStartResult, MenuCommand, StagedAttachment } from "../../../desktop/src/bridge-types.ts";

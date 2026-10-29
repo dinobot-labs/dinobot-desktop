@@ -26,6 +26,8 @@ export interface DaemonStartResult {
 	/** Last log lines when the start failed. */
 	logTail?: string;
 	error?: string;
+	/** The daemon process is still running but did not answer in time; it may come up later. */
+	timedOut?: boolean;
 	/** The port the daemon answers on. */
 	port?: number;
 	/** api.port was taken by another program, so the manifest was moved from this port to {@link port}. */
@@ -56,7 +58,7 @@ export interface DesktopBridge {
 	onMenuCommand(listener: (command: MenuCommand) => void): () => void;
 }
 
-export type MenuCommand = "new-thread" | "command-palette" | "settings" | "toggle-panel" | "find";
+export type MenuCommand = "new-thread" | "command-palette" | "settings" | "toggle-panel" | "find" | "report";
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Main-process features (ipc-features.ts)
@@ -82,6 +84,24 @@ export interface ImageData {
 	data: string;
 	bytes: number;
 }
+
+/**
+ * A composer attachment sent as a path instead of inline (anything but an in-limit png/jpeg/gif/webp). A file is copied
+ * into `<temp>/dinobot-attachments/<stamp>-<random>/` so the agent opens a stable snapshot with its tools; a folder is
+ * referenced where it is. The daemon runs on this machine, so the path is valid for it.
+ */
+export interface StagedAttachment {
+	kind: "file" | "folder";
+	/** Absolute path the agent opens: the staged copy, or the folder itself. */
+	path: string;
+	/** The name the person attached (chip label). */
+	name: string;
+	/** Size of the staged copy; 0 for a folder. */
+	bytes: number;
+}
+
+/** A file with no path on disk (clipboard data, a drag from a web page) crosses IPC in memory up to this size. */
+export const MAX_IN_MEMORY_ATTACHMENT_BYTES = 100 * 1024 * 1024;
 
 /** One path checked for the Artifacts panel; `path` is the real file (symlinks resolved). */
 export type ArtifactStat =
@@ -150,6 +170,39 @@ export interface SetupRecovery {
 	message?: string;
 }
 
+/** Why a problem report is sent (the manifest's `trigger.rule`). */
+export type ReportTrigger = "button" | "setup-failed" | "daemon-down";
+
+/** `dinobot report consent --json`: the consent text the person agrees to before the first report. */
+export type ReportConsentResult =
+	| { ok: true; version: string; text: string; textSha256?: string; consented: boolean; auto: boolean }
+	| { ok: false; error: string };
+
+/** `dinobot report agree <version>`; `versionMismatch` when the text changed since it was shown. */
+export type ReportAgreeResult = { ok: true } | { ok: false; error: string; versionMismatch?: boolean };
+
+/** The open thread whose conversation the report includes (daemon mode): `channel:key` as in the daemon's thread list. */
+export interface ReportThread {
+	channel: string;
+	key: string;
+}
+
+export interface ReportSendRequest {
+	trigger: ReportTrigger;
+	note?: string;
+	thread?: ReportThread;
+}
+
+/** `dinobot report send --json`: sent (uploaded), pending (stored, retried later), failed, or consent_required. */
+export interface ReportSendResult {
+	status: "sent" | "pending" | "failed" | "consent_required";
+	id?: string;
+	shortId?: string;
+	error?: string;
+	/** "daemon" or "offline". */
+	mode?: string;
+}
+
 export interface DesktopFeatureBridge {
 	/** app.getLocale(), e.g. "ko" or "en-US". */
 	locale: string;
@@ -159,18 +212,28 @@ export interface DesktopFeatureBridge {
 	clipboardImage(): Promise<{ mimeType: "image/png"; data: string; bytes: number } | null>;
 	clipboardFilePaths(): Promise<string[]>;
 	readImageFile(path: string): Promise<ImageData | { error: string }>;
+	/**
+	 * Stage a dropped, picked or pasted file (or a pasted absolute path) as a path attachment. Optional for older
+	 * desktop builds.
+	 */
+	stageAttachment?(file: File | string): Promise<StagedAttachment | { error: string }>;
 	/** Which of these absolute (or `~/`) paths are HTML pages or images the panel may show. */
 	artifactStat(paths: string[]): Promise<ArtifactStat[]>;
 	artifactRead(path: string): Promise<ArtifactContent | { error: string }>;
 	/** Open with the default app (HTML: the browser), or show it in the file manager. false when not allowed. */
 	artifactOpen(path: string, how: "open" | "reveal"): Promise<boolean>;
-	checkUpdate(current: string): Promise<UpdateCheck | null>;
+	/** Newer dinobot on npm for the connected daemon (`pid`); null for the app's bundled daemon, which updates with the app. */
+	checkUpdate(current: string, pid?: number): Promise<UpdateCheck | null>;
 	/** null for dev builds and copies not installed by the invite installer. */
 	checkDesktopUpdate(): Promise<DesktopUpdate | null>;
 	/** Starts the installer, which closes and restarts the app once the new build is verified. false when unavailable. */
 	applyDesktopUpdate(): Promise<boolean>;
 	setupApply(request: ManifestApplyRequest, daemon: { pid: number; owner: "tui" | "external" }, port: number): Promise<ApplyOutcome>;
 	setupRecover(): Promise<SetupRecovery>;
+	/** Optional for older desktop builds. */
+	reportConsent?(): Promise<ReportConsentResult>;
+	reportAgree?(version: string, auto: boolean): Promise<ReportAgreeResult>;
+	reportSend?(request: ReportSendRequest): Promise<ReportSendResult>;
 }
 
 // Declaration merging: the bridge carries the feature methods too.

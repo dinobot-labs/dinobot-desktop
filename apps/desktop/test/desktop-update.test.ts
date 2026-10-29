@@ -29,6 +29,11 @@ describe("desktop self-update", () => {
 		expect(installBase(home({ base: "https://evil.example/elsewhere" }))).toBeNull();
 		expect(installBase(home({ base: "http://updates.example.test/i/" + "a".repeat(43) }))).toBeNull();
 		expect(installBase(home({ base: BASE + "'; rm -rf ~" }))).toBeNull();
+		// A public install can record a bare HTTPS origin. All examples are synthetic.
+		expect(installBase(home({ base: "https://updates.example.test" }))).toBe("https://updates.example.test");
+		expect(installBase(home({ base: "https://updates.example.test/" }))).toBeNull();
+		expect(installBase(home({ base: "https://updates.example.test'; rm -rf ~" }))).toBeNull();
+		expect(installBase(home({ base: "http://updates.example.test" }))).toBeNull();
 	});
 
 	test("compares the running version with latest.json of the invite", async () => {

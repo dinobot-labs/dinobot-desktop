@@ -6,6 +6,7 @@ import { pathToFileURL } from "node:url";
 import { localArtifactOptions, readLocalArtifact, readPins, sameDaemon, stageDaemon, validatePins, type StagedDaemon } from "../../scripts/stage-daemon.ts";
 
 const roots: string[] = [];
+// Fixture pin remains the historical manifest identity, not evidence of an available release artifact.
 const version = "0.7.15-local.browser.1";
 const pins = { dinobot: version, bun: "1.4.3" };
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
@@ -24,7 +25,7 @@ function fixture(manifest: object = { name: "dinobot", version }, content = "fix
 
 test("exact daemon prereleases and stable Bun pins are accepted, without ranges or unsafe versions", async () => {
  expect(await readPins()).toEqual(pins);
- for (const dinobot of ["1.2.3", version, "1.2.3-rc.0+build.9", "1.2.3-01a"]) expect(validatePins({ ...pins, dinobot }).dinobot).toBe(dinobot);
+ for (const dinobot of ["1.2.3", "0.7.19", version, "1.2.3-rc.0+build.9", "1.2.3-01a"]) expect(validatePins({ ...pins, dinobot }).dinobot).toBe(dinobot);
  for (const dinobot of ["latest", "^1.2.3", "1.2.3 || 9.0.0", "01.2.3", "1.2.3-01", "1.2.3-rc..1", "1x2x3", "1.2.3/evil", "1.2.3\n", "1.2.3+", "1.2.3+a..b"]) expect(() => validatePins({ ...pins, dinobot })).toThrow("exact");
  for (const bun of ["1.4.3-local.1", "^1.4.3", "01.4.3", "1.4.3\n", "1.4.3+build"]) expect(() => validatePins({ ...pins, bun })).toThrow("stable Bun");
 });

@@ -6,6 +6,7 @@ import { collapsedProjects, saveCollapsedProjects } from "../lib/settings.ts";
 import { deleteThread, newThread, openSettings, selectThread, type ThreadEntry, useApp } from "../state/app.ts";
 import { groupProjects, nextShown, PROJECT_PAGE, PROJECT_STEP, type ProjectGroup } from "../state/projects.ts";
 import { cleanPreview, threadLabel, withoutSender } from "./thread-label.ts";
+import { ReportButton } from "../dialogs/ReportDialog.tsx";
 
 function statusKind(t: ThreadEntry, unseen: boolean): StatusKind {
 	const s = t.status;
@@ -306,6 +307,7 @@ export function Sidebar() {
 			<div className="flex items-center gap-2 border-t border-line px-2.5 py-2">
 				<span className="size-1.5 rounded-full bg-status-success" />
 				<span className="min-w-0 flex-1 truncate font-mono text-micro text-fg-3">daemon {daemon?.version ?? ""}</span>
+				<ReportButton size="icon-sm" label={false} />
 				<Tooltip content="설정 (Ctrl ,)">
 					<Button variant="ghost" size="icon-sm" aria-label="설정" onClick={() => openSettings()}>
 						<IconSettings />

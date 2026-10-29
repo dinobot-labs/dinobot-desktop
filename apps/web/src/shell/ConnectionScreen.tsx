@@ -2,9 +2,11 @@ import { Button, Dino, Shimmer } from "@dinobot/ui";
 import { IconFileText, IconPlayerPlay, IconRefresh } from "@tabler/icons-react";
 import { desktop, isDesktop } from "../lib/bridge.ts";
 import { connect, startDaemon, useApp } from "../state/app.ts";
+import { ReportButton } from "../dialogs/ReportDialog.tsx";
 
 export function ConnectionScreen() {
-	const { connection, connectionError, logTail, config } = useApp();
+	const { connection, connectionError, logTail, config, applyOutcome } = useApp();
+	const setupFailed = (applyOutcome as { level?: string } | null)?.level === "error";
 	const busy = connection === "checking" || connection === "starting";
 	return (
 		<div className="dot-paper flex min-h-0 flex-1 items-center justify-center overflow-auto p-8">
@@ -30,6 +32,7 @@ export function ConnectionScreen() {
 									<IconFileText /> 로그 열기
 								</Button>
 							) : null}
+							<ReportButton trigger={setupFailed ? "setup-failed" : "daemon-down"} variant="ghost" size="lg" testId="report-daemon-down" />
 						</div>
 						{isDesktop && config && !config.command ? (
 							<p className="mt-4 text-sm text-fg-3">

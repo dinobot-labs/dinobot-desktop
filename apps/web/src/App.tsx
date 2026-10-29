@@ -26,6 +26,8 @@ import { useSettings } from "./lib/settings.ts";
 import { useDinoSync, useThemeSync } from "./lib/theme.ts";
 import { WorkPanel } from "./panel/WorkPanel.tsx";
 import { ConnectionScreen } from "./shell/ConnectionScreen.tsx";
+import { ReportConsentDialog } from "./dialogs/ReportDialog.tsx";
+import { startReport } from "./state/report.ts";
 import { EmptyState } from "./shell/EmptyState.tsx";
 import { Sidebar } from "./shell/Sidebar.tsx";
 import { TitleBar } from "./shell/TitleBar.tsx";
@@ -87,6 +89,7 @@ function useShortcuts() {
 			if (command === "new-thread" && useApp.getState().connection === "online") newThread();
 			else if (command === "command-palette") openPalette();
 			else if (command === "settings") openSettings();
+			else if (command === "report") void startReport(useApp.getState().connection === "offline" ? "daemon-down" : "button");
 			else if (command === "toggle-panel") {
 				const s = useSettings.getState();
 				s.set({ panelOpen: !s.panelOpen });
@@ -137,6 +140,7 @@ export function App() {
 					{overlays ? <Overlays /> : null}
 					{subagent ? <SubagentSheet /> : null}
 				</Suspense>
+				<ReportConsentDialog />
 				<Toaster />
 			</TooltipProvider>
 		</DinoSpeciesProvider>

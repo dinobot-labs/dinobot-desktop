@@ -6,6 +6,8 @@ import { useSettings } from "../lib/settings.ts";
 import { refreshModel, sessionFor, setTitle, useApp } from "../state/app.ts";
 import { runLocalOrDaemon } from "../state/local-commands.ts";
 import { AskBar } from "./AskBar.tsx";
+import type { StagedAttachment } from "../lib/bridge.ts";
+import { withAttachments } from "./attachments.ts";
 import { type Attachment, Composer } from "./Composer.tsx";
 import { QueueBar } from "./QueueBar.tsx";
 import { StatusLine } from "./StatusLine.tsx";
@@ -42,12 +44,14 @@ export function ChatView({ threadKey }: { threadKey: string }) {
 		session.start();
 	}, [session]);
 
-	const send = async (text: string, images: Attachment[]): Promise<boolean> => {
+	const send = async (text: string, images: Attachment[], files: StagedAttachment[] = []): Promise<boolean> => {
 		try {
 			const first = d.firstUserText === undefined;
-			if (first && text) setTitle(threadKey, text);
+			// The title comes from what the person typed, not from the attachment note.
+			const title = text || files[0]?.name;
+			if (first && title) setTitle(threadKey, title);
 			const response = await api.send(threadKey, {
-				text,
+				text: withAttachments(text, files),
 				userId: userName || "local",
 				messageId: crypto.randomUUID(),
 				...(busy ? { whenBusy: "steer" as const } : {}),
@@ -144,6 +148,7 @@ export function ChatView({ threadKey }: { threadKey: string }) {
 						threadKey={threadKey}
 						cwd={cwd}
 						model={model}
+						usage={d.usage}
 						hasQueue={d.queue.length > 0}
 						onSend={send}
 						onCommand={onCommand}

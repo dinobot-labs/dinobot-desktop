@@ -26,6 +26,8 @@ The build produces the renderer, styleguide and Electron main/preload bundles. I
 
 The Desktop application needs a compatible Dinobot daemon to run; the source build alone is not an installable release. The pinned local daemon version is historical, not a publicly downloadable release. Installer commands in apps/desktop are retained for future packaging work and are not supported by public CI. See docs/wiki/Development.md and docs/wiki/Release.md.
 
+`main` is maintained source, not a frozen export. PUBLIC_SNAPSHOT.md and SOURCE_PROVENANCE.json separate the current source delta from the historical export and unchanged packaging-version fields. SOURCE_HASHES.json records canonical Git-blob bytes; `bun scripts/source-hashes.ts --check` checks the staged index (or pass a revision to check its tree).
+
 Core and TUI repository
 https://github.com/dinobot-labs/dinobot
 

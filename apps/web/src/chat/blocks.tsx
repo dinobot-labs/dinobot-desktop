@@ -79,7 +79,8 @@ export const AgentRow = memo(function AgentRow({ block }: { block: AgentBlock; v
 							setTimeout(() => setCopied(false), 1200);
 						})
 					}
-					className="absolute -bottom-5 left-0 flex h-5 cursor-pointer items-center gap-1 rounded-xs px-1 text-micro text-fg-3 opacity-0 transition-opacity group-hover/msg:opacity-100 hover:text-fg focus-visible:opacity-100"
+					// Keep the action in the measured row so the next virtual row cannot cover its hit area.
+					className="flex h-5 cursor-pointer items-center gap-1 rounded-xs px-1 text-micro text-fg-3 opacity-0 transition-opacity group-hover/msg:opacity-100 hover:text-fg focus-visible:opacity-100"
 				>
 					{copied ? <IconCheck size={12} /> : <IconCopy size={12} />} {copied ? "복사됨" : "복사"}
 				</button>

@@ -76,7 +76,7 @@ export type ApplyPorts = {
 
 export type ApplyLimits = { readonly stopMs: number; readonly startMs: number; readonly pollMs: number };
 
-export const DEFAULT_APPLY_LIMITS: ApplyLimits = { stopMs: 20_000, startMs: 20_000, pollMs: 100 };
+export const DEFAULT_APPLY_LIMITS: ApplyLimits = { stopMs: 20_000, startMs: 90_000, pollMs: 100 };
 
 export const backupPath = (manifestPath: string) => `${manifestPath}.bak`;
 export const journalPath = (manifestPath: string) => `${manifestPath}.setup-journal.json`;

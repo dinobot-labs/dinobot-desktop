@@ -7,6 +7,7 @@ import type { MenuCommand } from "./bridge-types.ts";
 import { cachedConfig, daemonLogPath, readDaemonConfig, setBundledDaemonDir } from "./daemon.ts";
 import { ensureDaemon } from "./daemon-ensure.ts";
 import { registerFeatureIpc } from "./ipc-features.ts";
+import { recordDaemonStart, recordError } from "./features/report.ts";
 import { DesktopBrowser } from "./features/browser/runtime.ts";
 import { trustedBrowserSender } from "./features/browser/trust.ts";
 import { loadWindowState, trackWindowState } from "./window-state.ts";
@@ -41,6 +42,13 @@ if (process.env.DINOBOT_PERF === "1") {
 if (process.env.DINOBOT_USER_DATA) app.setPath("userData", process.env.DINOBOT_USER_DATA);
 
 if (process.env.DINOBOT_PERF !== "1" && !app.requestSingleInstanceLock()) app.quit();
+
+// Recent main-process errors go into the next problem report. The monitor does not change how an uncaught error ends the process.
+process.on("uncaughtExceptionMonitor", (error) => recordError("main", error));
+process.on("unhandledRejection", (reason) => {
+	recordError("main", reason);
+	console.error("Unhandled rejection:", reason);
+});
 
 let win: BrowserWindow | null = null;
 let desktopBrowser: DesktopBrowser | null = null;
@@ -85,6 +93,7 @@ function buildMenu() {
 			],
 		},
 		{ role: "windowMenu" },
+		{ role: "help", submenu: [{ label: "Report a problem…", click: () => sendMenu("report") }] },
 	];
 	Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
@@ -157,6 +166,11 @@ function createWindow() {
 		details.preventDefault();
 		if (/^https?:\/\//.test(details.url)) void shell.openExternal(details.url);
 	});
+	win.webContents.on("console-message", (details) => {
+		if (details.level === "error") recordError("renderer", `${details.message}${details.sourceId ? ` (${details.sourceId}:${details.lineNumber})` : ""}`);
+	});
+	win.webContents.on("render-process-gone", (_event, details) => recordError("renderer", `renderer process gone: ${details.reason} (exit code ${details.exitCode})`));
+	win.webContents.on("preload-error", (_event, path, error) => recordError("renderer", `preload ${path}: ${error.message}`));
 	win.on("closed", () => {
 		win = null;
 	});
@@ -187,7 +201,7 @@ function registerIpc() {
 		event.returnValue = app.getVersion();
 	});
 	ipcMain.handle("daemon:config", () => readDaemonConfig());
-	ipcMain.handle("daemon:start", () => ensureDaemon());
+	ipcMain.handle("daemon:start", async () => recordDaemonStart(await ensureDaemon()));
 	ipcMain.handle("daemon:open-log", async () => {
 		const { dataDir } = cachedConfig() ?? (await readDaemonConfig());
 		if (dataDir) await shell.openPath(daemonLogPath(dataDir));
@@ -232,7 +246,7 @@ app.whenReady().then(async () => {
 	setBundledDaemonDir(bundledDaemonDir());
 	await readDaemonConfig();
 	// Start (or find) the daemon while the window loads; the renderer's first connect joins this same run.
-	void ensureDaemon();
+	void ensureDaemon().then(recordDaemonStart, (error: unknown) => recordError("main", error));
 	app.setAppUserModelId("dev.dinobot.desktop");
 	registerProtocol();
 	desktopBrowser = new DesktopBrowser(appRoot());

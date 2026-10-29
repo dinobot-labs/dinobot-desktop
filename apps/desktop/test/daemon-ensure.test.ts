@@ -112,6 +112,19 @@ describe("ensureDaemonWith", () => {
 		expect(w.setPortCalls).toBe(0);
 	});
 
+	test("a slow cold start (large database, 45 s) still ends with our daemon, not an error screen", async () => {
+		const { w, ports } = world({ bootMs: 45_000 });
+		expect(await ensureDaemonWith(ports, limits)).toEqual({ ok: true, pid: 1000, port: 8786 });
+		expect(w.spawned).toEqual([8786]);
+	});
+
+	test("a live daemon that never answers is reported as timed out, so the app keeps watching for it", async () => {
+		const { ports } = world({ bootMs: 10 * 60_000 });
+		const result = await ensureDaemonWith(ports, limits);
+		expect(result.ok).toBe(false);
+		expect(result.timedOut).toBe(true);
+	});
+
 	test("our daemon already answers: reused, nothing spawned", async () => {
 		const { w, ports } = world({ occupants: { 8786: { kind: "dinobot", manifest: MANIFEST, pid: 7 } } });
 		expect(await ensureDaemonWith(ports, limits)).toEqual({ ok: true, pid: 7, port: 8786 });

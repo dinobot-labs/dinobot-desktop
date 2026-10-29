@@ -333,5 +333,81 @@
     "packages/contracts/src/messages.ts",
     "packages/ui/src/brand/SOURCE.md",
     "tsconfig.json"
-  ]
+  ],
+  "recordKind": "historical-export-with-current-source-maintenance",
+  "currentSource": {
+    "repository": "https://github.com/dinobot-labs/dinobot-desktop",
+    "coreRepository": "https://github.com/dinobot-labs/dinobot",
+    "branch": "main",
+    "authority": "This public repository is the sole maintained Desktop source; the export fields above describe the historical snapshot only.",
+    "sourceSync": {
+      "publicBase": "8224ef73ed78c116d4b7294d4bcfcc9e7c32cced",
+      "deltaBase": "307b7e20d8fc15dd702c41eb6c40f97dd1a56089",
+      "deltaTip": "448ade1a8834f2ca2d4263295c1c8f00caaebdcd",
+      "method": "Select runtime and test changes from frozen Git objects onto public main; retain public-only fixtures, licenses and guards. No legacy history, backend, installer or QA data copied.",
+      "runtimePaths": [
+        "apps/desktop/src/bridge-types.ts",
+        "apps/desktop/src/daemon-ensure.ts",
+        "apps/desktop/src/daemon.ts",
+        "apps/desktop/src/features/attachments.ts",
+        "apps/desktop/src/features/daemon-process.ts",
+        "apps/desktop/src/features/desktop-update.ts",
+        "apps/desktop/src/features/report.ts",
+        "apps/desktop/src/features/setup-apply.ts",
+        "apps/desktop/src/ipc-features.ts",
+        "apps/desktop/src/main.ts",
+        "apps/desktop/src/preload.ts",
+        "apps/web/src/App.tsx",
+        "apps/web/src/chat/ChatView.tsx",
+        "apps/web/src/chat/Composer.tsx",
+        "apps/web/src/chat/ContextUsage.tsx",
+        "apps/web/src/chat/attachments.ts",
+        "apps/web/src/chat/blocks.tsx",
+        "apps/web/src/chat/model.ts",
+        "apps/web/src/chat/protocol.ts",
+        "apps/web/src/chat/session.ts",
+        "apps/web/src/dialogs/ReportDialog.tsx",
+        "apps/web/src/lib/bridge.ts",
+        "apps/web/src/shell/ConnectionScreen.tsx",
+        "apps/web/src/shell/Sidebar.tsx",
+        "apps/web/src/state/app.ts",
+        "apps/web/src/state/report.ts",
+        "packages/ui/src/i18n/en.ts"
+      ],
+      "testPaths": [
+        "apps/desktop/test/attachments.test.ts",
+        "apps/desktop/test/browser/local-package.test.ts",
+        "apps/desktop/test/daemon-ensure.test.ts",
+        "apps/desktop/test/daemon-launch.test.ts",
+        "apps/desktop/test/daemon-process.test.ts",
+        "apps/desktop/test/desktop-update.test.ts",
+        "apps/desktop/test/report.test.ts",
+        "apps/web/test/attachments.test.ts",
+        "apps/web/test/context-usage.test.tsx",
+        "apps/web/test/model.test.ts",
+        "apps/web/test/report.test.ts"
+      ],
+      "publicAdaptations": [
+        "Preserve synthetic model/artifact fixtures and synthetic update domains.",
+        "Replace a new developer-home test path and operational URL comment with synthetic examples.",
+        "Keep local-package fixture/readPins identity at the historical daemon pin; retain stable 0.7.19 only as a synthetic accepted-version case.",
+        "Use real Windows directory junctions for the two directory-link attachment fixtures; retain their assertions and test real symlinks and POSIX permissions on Linux."
+      ]
+    },
+    "artifactBoundary": {
+      "status": "source-only; no installer or package release",
+      "desktopVersion": "0.1.2-local.browser.1",
+      "daemonPin": "0.7.15-local.browser.1",
+      "bunPin": "1.4.3",
+      "note": "Version fields remain historical packaging identity, not source freshness. The daemon pin was unavailable in the public registry on 2026-10-29. A registry version is not proof of a build from canonical public source. No replacement artifact is asserted."
+    },
+    "hashManifest": {
+      "file": "SOURCE_HASHES.json",
+      "algorithm": "sha256",
+      "bytes": "raw Git blob bytes from final index or revision, not working-tree line endings",
+      "coverage": "every tracked file except SOURCE_HASHES.json itself",
+      "generator": "bun scripts/source-hashes.ts --json",
+      "check": "bun scripts/source-hashes.ts --check"
+    }
+  }
 }

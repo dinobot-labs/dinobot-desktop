@@ -81,6 +81,8 @@ describe("replaying wholly synthetic protocol events", () => {
 		expect(twice.blocks.map((b) => b.kind)).toEqual(once.blocks.map((b) => b.kind));
 		expect(twice.todos).toEqual(once.todos);
 		expect(twice.dag).toEqual(once.dag);
+		expect(twice.usage).toEqual(once.usage);
+		expect(once.usage.sent + once.usage.output).toBe(once.usage.contextTokens);
 	});
 });
 

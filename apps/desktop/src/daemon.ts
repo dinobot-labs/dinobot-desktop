@@ -7,7 +7,7 @@ import { parse } from "yaml";
 import type { DaemonConfig, DaemonStartResult } from "./bridge-types.ts";
 
 const DEFAULT_PORT = 8786;
-const START_TIMEOUT_MS = 15_000;
+const START_TIMEOUT_MS = 90_000;
 
 /** Manifest lookup for a GUI app: $DINOBOT_CONFIG, then ~/.config/dinobot/dinobot.yaml (the TUI also checks ./dinobot.yaml, which has no meaning for a desktop app). */
 export function manifestPath(): string | null {
@@ -47,6 +47,9 @@ export function bundledDaemonAt(dir: string): BundledDaemon | null {
 		return null;
 	}
 }
+
+/** The daemon shipped with this app, or null when there is none (development builds without a staged daemon). */
+export const bundledDaemon = (): BundledDaemon | null => (bundledDir === null ? null : bundledDaemonAt(bundledDir));
 
 /** The bundled daemon's main.js when `command` is it (the bun runtime sits three levels up). */
 function bundledFor(command: string): BundledDaemon | null {
@@ -165,6 +168,12 @@ async function resolveLaunch(command: string): Promise<Launch> {
 	const plain = { file: command, prefix: [] };
 	const bundled = bundledFor(command);
 	if (bundled) return bundledLaunch(bundled);
+	// DINOBOT_BIN pointing at a source checkout (…/dinobot/src/main.ts): run it with bun, whose pid is then the daemon's.
+	if (/\.(?:[cm]?[jt]s|tsx)$/i.test(command)) {
+		const bunHome = join(process.env.BUN_INSTALL || join(homedir(), ".bun"), "bin", bunName());
+		const bun = (await findOnPath("bun", process.platform === "win32" ? [".exe"] : [""])) ?? ((await access(bunHome).then(() => true, () => false)) ? bunHome : null);
+		return bun === null ? plain : { file: bun, prefix: [command] };
+	}
 	if (process.platform !== "win32" || !/\.exe$/i.test(command)) return plain;
 	const text = (await readFile(command.replace(/\.exe$/i, ".bunx")).catch(() => undefined))?.toString("utf16le");
 	const match = text === undefined ? null : /^([^"\0]+)"\0([A-Za-z0-9_.-]+)/.exec(text);
@@ -256,7 +265,7 @@ export async function spawnDaemonProcess(command: string, manifestPath: string, 
 	return { pid: child.pid, exited: () => exited };
 }
 
-/** Spawns the daemon (see {@link spawnDaemonProcess}) unless one already answers, and waits up to 15 s for /healthz. */
+/** Spawns the daemon (see {@link spawnDaemonProcess}) unless one already answers, and waits up to 90 s for /healthz. */
 export async function startDaemon(): Promise<DaemonStartResult> {
 	const config = await readDaemonConfig();
 	if (await healthy(config.port)) return { ok: true };
@@ -274,5 +283,5 @@ export async function startDaemon(): Promise<DaemonStartResult> {
 		if (await healthy(config.port)) return { ok: true, pid: child.pid };
 		await new Promise((r) => setTimeout(r, 150));
 	}
-	return { ok: false, error: `dinobot daemon did not come up on 127.0.0.1:${config.port}`, logTail: await logTail(config.dataDir) };
+	return { ok: false, ...(child.exited() ? {} : { timedOut: true }), error: `dinobot daemon did not come up on 127.0.0.1:${config.port}`, logTail: await logTail(config.dataDir) };
 }

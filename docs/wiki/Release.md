@@ -7,7 +7,9 @@ A future installer release must pin a compatible public Dinobot release, preserv
 Public core source
 https://github.com/dinobot-labs/dinobot
 
-The root build command needs none of those packaging inputs.
+The root build command needs none of those packaging inputs. The source sync from frozen `448ade1a8834f2ca2d4263295c1c8f00caaebdcd` does not change the historical app/daemon version fields or claim an installer release. Do not use an npm version's existence as proof that it was built from the canonical public core. See PUBLIC_SNAPSHOT.md for the current source boundary.
+
+The problem-report UI requires a core exposing `dinobot report consent|agree|send --json`. Its CLI/client tests use synthetic context and fake protocol endpoints; they must not transmit actual user diagnostics for verification. File-attachment paths assume the daemon runs on the same machine. Platform-specific permission and packaging checks remain part of acceptance, not something a source hash or static guard proves.
 
 ## Tracking fixes
 

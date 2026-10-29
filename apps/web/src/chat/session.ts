@@ -39,7 +39,7 @@ const EMPTY_SIDE: SideState = {
 	workflow: null,
 	dag: null,
 	agent: {},
-	usage: { contextTokens: 0, totalTokens: 0, cost: 0 },
+	usage: { contextTokens: 0, sent: 0, output: 0, totalTokens: 0, cost: 0 },
 	ledger: { models: {}, tools: {} },
 	call: {},
 	snapshots: 0,
