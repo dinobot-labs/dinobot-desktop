@@ -2,7 +2,7 @@ import { Button, cn, ContextMenu, ContextMenuItem, ContextMenuPopup, ContextMenu
 import { IconChevronRight, IconFolder, IconFolderOpen, IconLayoutList, IconMessages, IconPlus, IconSearch, IconSettings, IconTrash } from "@tabler/icons-react";
 import { memo, useCallback, useMemo, useState } from "react";
 import { relativeTime, useNow } from "../lib/hooks.ts";
-import { collapsedProjects, saveCollapsedProjects } from "../lib/settings.ts";
+import { collapsedProjects, saveCollapsedProjects, setProjectHidden, useSettings } from "../lib/settings.ts";
 import { deleteThread, newThread, openSettings, selectThread, type ThreadEntry, useApp } from "../state/app.ts";
 import { groupProjects, nextShown, PROJECT_PAGE, PROJECT_STEP, type ProjectGroup } from "../state/projects.ts";
 import { cleanPreview, threadLabel, withoutSender } from "./thread-label.ts";
@@ -98,7 +98,7 @@ function rowFor(t: ThreadEntry, ctx: RowContext, onSelect?: (key: string) => voi
 }
 
 /** One project (or "일반"): a folding header with the folder, a running mark and the count, then its rows. */
-function ProjectSection({ group, ctx, onToggle, onMore, onOpenAll }: { group: ProjectGroup; ctx: RowContext; onToggle: (id: string) => void; onMore: (group: ProjectGroup) => void; onOpenAll: (id: string) => void }) {
+function ProjectSection({ group, hidden, ctx, onToggle, onMore, onOpenAll }: { group: ProjectGroup; hidden: boolean; ctx: RowContext; onToggle: (id: string) => void; onMore: (group: ProjectGroup) => void; onOpenAll: (id: string) => void }) {
 	const FolderIcon = group.general ? IconMessages : group.collapsed ? IconFolder : IconFolderOpen;
 	const create = () => newThread(undefined, group.path ?? undefined);
 	const name = (
@@ -140,6 +140,11 @@ function ProjectSection({ group, ctx, onToggle, onMore, onOpenAll }: { group: Pr
 					<ContextMenuItem onClick={() => onOpenAll(group.id)}>
 						<IconLayoutList /> 스레드 모두 보기
 					</ContextMenuItem>
+					{group.path ? (
+						<ContextMenuItem data-testid="project-remove" onClick={() => setProjectHidden(group.path!, !hidden)}>
+							{hidden ? <IconPlus /> : <IconTrash />} {hidden ? "사이드바에 추가" : "사이드바에서 제거"}
+						</ContextMenuItem>
+					) : null}
 				</ContextMenuPopup>
 			</ContextMenu>
 			{group.visible.length ? <div className="ml-[13px] border-l border-line pl-1">{group.visible.map((t) => rowFor(t, ctx))}</div> : null}
@@ -223,6 +228,7 @@ export function Sidebar() {
 	const unseen = useApp((s) => s.unseen);
 	const daemon = useApp((s) => s.daemon);
 	const homeDir = useApp((s) => s.config?.homeDir);
+	const hiddenProjects = useSettings((s) => s.hiddenProjects);
 	const [query, setQuery] = useState("");
 	const [collapsed, setCollapsed] = useState(() => new Set(collapsedProjects()));
 	const [shown, setShown] = useState<Record<string, number>>({});
@@ -242,11 +248,12 @@ export function Sidebar() {
 			unseen: new Set(unseen),
 			activeKey,
 			collapsed,
+			hiddenProjects: new Set(hiddenProjects),
 			shown,
 			all: Boolean(q),
 		});
 		return { ...grouped, other, empty: local.length === 0 };
-	}, [threads, titles, cwds, homeDir, unseen, activeKey, collapsed, shown, query]);
+	}, [threads, titles, cwds, homeDir, unseen, activeKey, collapsed, hiddenProjects, shown, query]);
 	const toggle = useCallback((id: string) => {
 		setCollapsed((prev) => {
 			const next = new Set(prev);
@@ -261,7 +268,7 @@ export function Sidebar() {
 	const every = [...layout.projects, ...layout.moreProjects, ...(layout.general ? [layout.general] : [])];
 	const dialogGroup = dialog ? every.find((g) => g.id === dialog) : undefined;
 	const deletingEntry = deleting ? threads.find((t) => t.key === deleting) : undefined;
-	const section = (g: ProjectGroup) => <ProjectSection key={g.id} group={g} ctx={ctx} onToggle={toggle} onMore={more} onOpenAll={setDialog} />;
+	const section = (g: ProjectGroup) => <ProjectSection key={g.id} group={g} hidden={hiddenProjects.includes(g.id)} ctx={ctx} onToggle={toggle} onMore={more} onOpenAll={setDialog} />;
 	return (
 		<aside className="flex w-[260px] shrink-0 flex-col border-r border-line bg-band" aria-label="스레드">
 			<div className="flex flex-col gap-2 p-2.5">

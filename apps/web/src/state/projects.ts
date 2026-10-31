@@ -79,6 +79,8 @@ export interface GroupOptions {
 	unseen?: ReadonlySet<string>;
 	activeKey?: string | null;
 	collapsed?: ReadonlySet<string>;
+	/** Explicitly removed folders; search still finds their preserved conversations. */
+	hiddenProjects?: ReadonlySet<string>;
 	/** Rows chosen with "더 보기", per project id. */
 	shown?: Readonly<Record<string, number>>;
 	/** Searching: list every match, ignore collapsing and limits. */
@@ -110,11 +112,12 @@ export function visibleRows(threads: ThreadEntry[], limit: number, collapsed: bo
 
 /** Group local threads (input already sorted: busy first, newest first) into sidebar projects. */
 export function groupProjects(threads: readonly ThreadEntry[], options: GroupOptions): ProjectLayout {
-	const { cwdOf, homeDir, unseen, activeKey, collapsed, shown, all = false } = options;
+	const { cwdOf, homeDir, unseen, activeKey, collapsed, hiddenProjects, shown, all = false } = options;
 	const buckets = new Map<string, { path: string | null; threads: ThreadEntry[] }>();
 	for (const t of threads) {
 		const cwd = cwdOf(t);
 		const id = projectIdOf(cwd, homeDir);
+		if (!all && id !== GENERAL_ID && hiddenProjects?.has(id)) continue;
 		let bucket = buckets.get(id);
 		if (!bucket) buckets.set(id, (bucket = { path: id === GENERAL_ID ? null : (cwd as string), threads: [] }));
 		bucket.threads.push(t);

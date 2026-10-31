@@ -1,5 +1,6 @@
 import { DEFAULT_SPECIES, isSpeciesId, type SpeciesId } from "@dinobot/ui/brand";
 import { create } from "zustand";
+import { GENERAL_ID, normalizePath } from "../state/projects.ts";
 import { DEFAULT_FONT_SIZE, type FontFamilySetting, normalizeTypography } from "./typography.ts";
 
 export type ThemeSetting = "system" | "light" | "dark";
@@ -14,6 +15,8 @@ export interface Settings {
 	fontSize: number;
 	/** Working directory for new threads; null lets the daemon use its workspaceRoot. */
 	defaultCwd: string | null;
+	/** Sidebar-only folder removal; conversations and files are never deleted. */
+	hiddenProjects: string[];
 	/** Right work panel; starts collapsed, then the last Ctrl+B choice persists. */
 	panelOpen: boolean;
 	panelWidth: number;
@@ -39,6 +42,7 @@ const DEFAULTS: Settings = {
 	fontFamily: "default",
 	fontSize: DEFAULT_FONT_SIZE,
 	defaultCwd: null,
+	hiddenProjects: [],
 	panelOpen: false,
 	panelWidth: 360,
 	sidebarWidth: 260,
@@ -55,7 +59,7 @@ export function loadSettings(): Settings {
 	try {
 		const parsed: unknown = JSON.parse(localStorage.getItem(KEY) ?? "{}");
 		const { showThinking: _legacy, dagView: _legacyDag, ...saved } = (parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Partial<Settings> : {}) as Partial<Settings> & { showThinking?: unknown; dagView?: unknown };
-		return { ...DEFAULTS, ...saved, ...normalizeTypography(saved), dino: isSpeciesId(saved.dino) ? saved.dino : DEFAULT_SPECIES };
+		return { ...DEFAULTS, ...saved, hiddenProjects: Array.isArray(saved.hiddenProjects) ? [...new Set(saved.hiddenProjects.filter((id): id is string => typeof id === "string" && id !== GENERAL_ID && id.trim() !== "").map(normalizePath))] : [], ...normalizeTypography(saved), dino: isSpeciesId(saved.dino) ? saved.dino : DEFAULT_SPECIES };
 	} catch {
 		return DEFAULTS;
 	}
@@ -77,6 +81,17 @@ export const useSettings = create<Settings & { set: (patch: Partial<Settings>) =
 			return next;
 		}),
 }));
+
+/** The only folder visibility transition. It changes a local preference, never thread or filesystem state. */
+export function setProjectHidden(path: string, hidden: boolean): void {
+	const id = normalizePath(path);
+	if (!id || id === GENERAL_ID) return;
+	const state = useSettings.getState();
+	const next = new Set(state.hiddenProjects);
+	if (hidden) next.add(id);
+	else next.delete(id);
+	state.set({ hiddenProjects: [...next] });
+}
 
 /** Thread titles the daemon does not keep: the first line of the opening message, remembered per key. */
 const TITLES = "dn-titles";

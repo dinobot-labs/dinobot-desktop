@@ -606,6 +606,8 @@ export const EN: Readonly<Record<string, string>> = {
 	"이 폴더에서 새 스레드": "New thread in this folder",
 	"{0}에서 새 스레드": "New thread in {0}",
 	" 스레드 모두 보기": " View all threads",
+	"사이드바에서 제거": "Remove from sidebar",
+	"사이드바에 추가": "Add to sidebar",
 	"{0}개 더 보기": "Show {0} more",
 	"모두 보기 · {0}개": "View all · {0}",
 	"작업 폴더를 정하지 않은 스레드": "Threads without a working folder",
