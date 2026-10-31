@@ -83,6 +83,20 @@ export function ChatView({ threadKey }: { threadKey: string }) {
 		}
 	};
 
+	const sendFromComposer = (text: string, images: Attachment[], files: StagedAttachment[] = []): Promise<boolean> => {
+		// Read current state at submission, not the last render/clock tick. Only an
+		// unambiguous live human question may claim otherwise ordinary free text.
+		const pending = session.side.asks.filter((a) => a.to === "human" && a.state === "open" && a.deadlineAt > Date.now());
+		if (text.trim() && !/^\[ask [^\]]+\] (?:answer|choice):/.test(text)) {
+			if (pending.length > 1) {
+				session.notice("열린 질문이 여러 개예요. 답할 질문의 선택지나 직접 답하기를 사용해 주세요.", "info");
+				return Promise.resolve(false);
+			}
+			if (pending[0]) text = `[ask ${pending[0].id}] answer: ${text}`;
+		}
+		return send(text, images, files);
+	};
+
 	const stop = () => {
 		void api.abort(threadKey).catch((error) => session.notice(`멈추지 못했어요: ${errorText(error)}`, "error"));
 	};
@@ -150,7 +164,7 @@ export function ChatView({ threadKey }: { threadKey: string }) {
 						model={model}
 						usage={d.usage}
 						hasQueue={d.queue.length > 0}
-						onSend={send}
+						onSend={sendFromComposer}
 						onCommand={onCommand}
 						onStop={stop}
 						onSendQueueNow={sendQueueNow}
