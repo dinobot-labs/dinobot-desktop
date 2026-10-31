@@ -116,13 +116,16 @@ export function localArtifactOptions(args: string[]): LocalArtifact | undefined 
 	for (let i = 0; i < args.length; i += 2) {
 		const key = args[i]!;
 		const value = args[i + 1];
-		if (!["--os", "--arch", "--dinobot-tarball", "--sha256"].includes(key) || !value || value.startsWith("--")) throw new Error("invalid or missing option value: " + key);
+		if (!["--os", "--arch", "--dinobot-tarball", "--sha256", "--dinobot-version"].includes(key) || !value || value.startsWith("--")) throw new Error("invalid or missing option value: " + key);
 		if (key !== "--arch" && values.has(key)) throw new Error("duplicate option: " + key);
 		values.set(key, value);
 	}
 	const tarball = values.get("--dinobot-tarball");
 	const sha256 = values.get("--sha256");
-	if (tarball === undefined && sha256 === undefined) return undefined;
+	if (tarball === undefined && sha256 === undefined) {
+		if (values.has("--dinobot-version")) throw new Error("--dinobot-version requires a local tarball and checksum");
+		return undefined;
+	}
 	if (!tarball || !sha256 || !/^[0-9a-fA-F]{64}$/.test(sha256)) throw new Error("--dinobot-tarball requires --sha256 with exactly 64 hex digits (and vice versa)");
 	return { tarball, sha256: sha256.toLowerCase() };
 }
@@ -136,6 +139,13 @@ export async function readLocalArtifact(artifact: LocalArtifact, version: string
 	const manifest = JSON.parse(run([tarExecutable(), "-xzOf", "-", "package/package.json"], DESKTOP, bytes)) as { name?: string; version?: string };
 	if (manifest.name !== "dinobot" || manifest.version !== version) throw new Error("local tarball must contain dinobot@" + version);
 	return { bytes, sha256 };
+}
+
+/** A development version override never changes the registry/default build pin. */
+export function stagingPins(args: string[], defaults: DaemonPins): DaemonPins {
+	const artifact = localArtifactOptions(args);
+	const index = args.indexOf("--dinobot-version");
+	return validatePins(artifact && index !== -1 ? { ...defaults, dinobot: args[index + 1]! } : defaults);
 }
 
 export function sameDaemon(have: Partial<StagedDaemon>, want: StagedDaemon): boolean {
@@ -218,6 +228,6 @@ if (import.meta.main) {
 	if (!["win", "mac", "linux"].includes(os)) throw new Error(`--os must be win, mac or linux`);
 	for (const arch of arches) if (arch !== "x64" && arch !== "arm64") throw new Error(`--arch must be x64 or arm64`);
 	const artifact = localArtifactOptions(args);
-	const pins = await readPins();
+	const pins = stagingPins(args, await readPins());
 	for (const arch of arches) await stageDaemon(os, arch, pins, artifact);
 }

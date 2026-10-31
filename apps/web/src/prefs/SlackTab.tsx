@@ -64,6 +64,7 @@ export function SlackTab() {
  return <div className="flex flex-col gap-6" data-testid="slack-tab">
   <Section title="Slack 봇 하나로 연결" description="읽기 권한과 보내는 사람은 달라요. 메시지·파일은 항상 봇 이름으로 보냅니다.">
    <div className="rounded-lg border border-line bg-sunken p-4 text-sm leading-relaxed">
+    <p className="mb-3 text-fg-3">이 새 Slack 기능은 호환 데몬이 필요해요. 로컬 개발 번들만 검증됐으며 호환 공개 버전은 아직 배포하지 않았어요. 기본 배포용 데몬 0.8.4도 현재 npm에 없어 설치 패키지 배포는 대기 중입니다.</p>
     <ol className="list-decimal space-y-1 pl-5"><li>앱 이름과 읽기 범위를 선택하세요.</li><li>자동 입력 링크로 앱을 만들고 워크스페이스에 설치하세요.</li><li>봇 토큰(xoxb), 앱 토큰(xapp)을 복사해 아래 비밀 입력란에 붙여 넣으세요.</li><li>본인 Slack 멤버 ID를 지정하고 검증·적용하세요.</li></ol>
     <p className="mt-3">기본: 봇이 참여한 채널·DM 읽기, 메시지·파일 송수신. 선택: 읽기 전용 사용자 토큰(xoxp)으로 내 채널·DM과 검색까지. 사용자 이름으로 보내지는 않습니다.</p>
     <p className="mt-2 text-fg-3">설정한 본인은 봇과의 1:1 DM에서도 도구를 사용할 수 있어요. 공유 채널에서는 개인 읽기를 허용하지 않아요. 멤버 ID 지정은 계정 소유권 인증이 아닙니다.</p>

@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { localArtifactOptions, readLocalArtifact, readPins, sameDaemon, stageDaemon, validatePins, type StagedDaemon } from "../../scripts/stage-daemon.ts";
+import { localArtifactOptions, readLocalArtifact, readPins, sameDaemon, stageDaemon, stagingPins, validatePins, type StagedDaemon } from "../../scripts/stage-daemon.ts";
 
 const roots: string[] = [];
 // Fixture pin remains the historical manifest identity, not evidence of an available release artifact.
@@ -24,7 +24,7 @@ function fixture(manifest: object = { name: "dinobot", version }, content = "fix
 }
 
 test("exact daemon prereleases and stable Bun pins are accepted, without ranges or unsafe versions", async () => {
- expect(await readPins()).toEqual({ dinobot: "0.8.4-slack.a8bdea8.1", bun: "1.4.3" });
+ expect(await readPins()).toEqual({ dinobot: "0.8.4", bun: "1.4.3" });
  for (const dinobot of ["1.2.3", "0.7.19", version, "1.2.3-rc.0+build.9", "1.2.3-01a"]) expect(validatePins({ ...pins, dinobot }).dinobot).toBe(dinobot);
  for (const dinobot of ["latest", "^1.2.3", "1.2.3 || 9.0.0", "01.2.3", "1.2.3-01", "1.2.3-rc..1", "1x2x3", "1.2.3/evil", "1.2.3\n", "1.2.3+", "1.2.3+a..b"]) expect(() => validatePins({ ...pins, dinobot })).toThrow("exact");
  for (const bun of ["1.4.3-local.1", "^1.4.3", "01.4.3", "1.4.3\n", "1.4.3+build"]) expect(() => validatePins({ ...pins, bun })).toThrow("stable Bun");
@@ -36,6 +36,17 @@ test("registry path remains default; local tarball requires exactly one explicit
  const hash = "AB".repeat(32);
  expect(localArtifactOptions(["--dinobot-tarball", "with spaces/artifact.tgz", "--sha256", hash])).toEqual({ tarball: "with spaces/artifact.tgz", sha256: hash.toLowerCase() });
  for (const args of [["--dinobot-tarball", "a.tgz"], ["--sha256", hash], ["--dinobot-tarball", "a", "--sha256", "bad"], ["--dinobot-tarball"], ["--sha256", hash, "--sha256", hash], ["--typo", "bad"]]) expect(() => localArtifactOptions(args)).toThrow();
+});
+
+test("development version override requires explicit local bytes and leaves default registry pin intact", () => {
+ const defaults = { dinobot: "0.8.4", bun: "1.4.3" };
+ expect(stagingPins([], defaults)).toEqual(defaults);
+ expect(() => stagingPins(["--dinobot-version", version], defaults)).toThrow("local tarball");
+ const args = ["--dinobot-tarball", "a.tgz", "--sha256", "ab".repeat(32), "--dinobot-version", version];
+ expect(stagingPins(args, defaults)).toEqual(pins);
+ expect(defaults.dinobot).toBe("0.8.4");
+ expect(() => stagingPins([...args.slice(0, -1), "latest"], defaults)).toThrow("exact");
+ expect(() => stagingPins([...args, "--dinobot-version", version], defaults)).toThrow("duplicate");
 });
 
 test("local archive verifies actual hash and manifest version/name before staging", async () => {

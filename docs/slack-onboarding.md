@@ -2,10 +2,13 @@
 
 ## Delivery boundary
 
-Desktop source and a compatible **local, unpublished win-x64 daemon bundle are staged**. No installer, live installation, shared daemon restart, real Slack calls, public release or push was performed. The normal dist scripts resolve the daemon from npm; this prerelease is not published, so they cannot fetch it. Use the explicit tarball/checksum staging command below for this local handoff. Never substitute public 0.8.4 as compatibility proof.
+Desktop source and a compatible **local, unpublished win-x64 daemon bundle are staged**. Canonical source integration preserves upstream main with merge commits; no installer, live installation, shared daemon restart, real Slack calls or public release is included. Standard source builds pass. Standard installer distribution remains blocked: canonical Desktop main 298f56c9f12edac4c822f84bcc7a0f5c1ff349ef already pinned dinobot 0.8.4, and npm returns E404 for that version. This integration restores that inherited pin instead of making standard builds depend on the unpublished Slack prerelease. No downgrade or release is performed. The UI states the capability/distribution limitation.
+
+Use explicit local tarball, checksum AND --dinobot-version for development staging. Without a local artifact, version overrides are rejected and default registry staging stays unchanged. Hash validation, exact manifest version, native addon checks and passive browser protocol checks remain mandatory. A compatible public core release plus matching release provenance is still required by the unchanged Windows packaging workflow. Never substitute an unavailable or older public version as Slack compatibility proof.
 
 - Desktop base: 89005fd34706f72dc748fc557550df9b6ee00bf5 (existing onboarding retained).
-- Core source: a8bdea8114fa6d6fde7ca047bcb9c74e407e37fa, clean before/after.
+- Historical local artifact source: a8bdea8114fa6d6fde7ca047bcb9c74e407e37fa, clean before/after packaging.
+- Integrated core source: 29919b814f6d780342f740e93e3f665fefdd6f84 (merge of that source and canonical main 6a7ea9c1eaa97f207e7ff129485ef6ae3ec28366). The existing tarball DOES NOT represent this newer merged tree; no rebuilt artifact is claimed.
 - Daemon: 0.8.4-slack.a8bdea8.1; runtime: Bun 1.4.3 win-x64 baseline.
 - Schema: apps/web/src/prefs/slack-command-v1.schema.json, copied unchanged from that core commit.
 
@@ -25,7 +28,17 @@ Only core owns durable monitor state; the UI owns an editable draft and the last
 
 The existing setupApply path retains validation, manifest CAS, daemon ownership, idle refusal, journal and restart handling. Only completed commands hand off apply. After applied, reconnect completes and Slack status is queried again. saved_external remains a saved configuration requiring its external owner's restart; busy/conflict/failure are not disconnection success.
 
-## Verification
+## Canonical integration verification
+
+Sequential, DEEPWORK_TYPECHECK_JOBS=2; checks scoped to merge boundaries and distribution changes:
+
+- Integrated core: 81 tests pass / 646 assertions across slack-command, slack-personal, slack-principal, commands, setup-command.
+- Integrated Desktop: 48 tests pass / 248 assertions across local-package, slack-model, slack-status, command-runner, thread-delete, setup-apply.
+- Desktop typecheck and web/main/preload build pass.
+- npm registry evidence: 0.8.4 E404; latest 0.8.3. Downloaded 0.8.3 passes the unchanged passive browser protocol check once its patchright@1.63.0 dependency is present. The initial missing-dependency probe failure is NOT protocol incompatibility. This narrow pass does not prove full Desktop or Slack compatibility; baseline was not downgraded.
+- Existing mock-Slack UI E2E and tarball proof below remain historical at their original source identities, not a new package proof for merged core.
+
+## Historical pre-integration verification
 
 Sequential execution, DEEPWORK_TYPECHECK_JOBS=2:
 
@@ -56,7 +69,7 @@ SHA-256:
 
 Stage with an absolute path to those bytes:
 
-    bun apps/desktop/scripts/stage-daemon.ts --os win --arch x64 --dinobot-tarball <absolute-tarball> --sha256 28abe986c9fc2639d008502d2e9b1854c1047e197eca35f2e3dcf8627dfe2d7e
+    bun apps/desktop/scripts/stage-daemon.ts --os win --arch x64 --dinobot-version 0.8.4-slack.a8bdea8.1 --dinobot-tarball <absolute-tarball> --sha256 28abe986c9fc2639d008502d2e9b1854c1047e197eca35f2e3dcf8627dfe2d7e
 
 Actual output: apps/desktop/vendor/daemon/win-x64. Native addon installed with scripts disabled; packaged --version matched the exact pin. All six staged package members matched the audited build output by SHA-256. A separate passive browser-host JSONL ui_state probe used the **staged Bun executable**, stripped inherited browser settings, returned disconnected/dedicated, and created no browser profile.
 
