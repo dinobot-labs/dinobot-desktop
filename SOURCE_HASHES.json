@@ -729,7 +729,7 @@
   "scripts/test-ask-composer.mjs": "1b4b21fc51c61aeb1fc2e8291752d2b6a9d73b74894ed93ad5bb703cd6dda63f",
   "scripts/windows-artifact.test.ts": "be2d3d0e3081727b6c40915e3e3a441b3ea8659dd3de6ffc9a4afeee73d63d90",
   "scripts/windows-artifact.ts": "a1ad83a0fa5e46fc978652df5d6a024c6c6cb7e0fccf266b2ba52772ea1b581c",
-  "scripts/windows-builder.test.ts": "cc4cd842b0bab828a0e6ef43e08163966c00047b9799a7f27a49e14fa8f36008",
+  "scripts/windows-builder.test.ts": "b5c75c9bbe1a564c06782347c78bf6be29022fc24351d917ba93a779b8270acf",
   "scripts/windows-seal.ps1": "dcb18968a0c4e623cba22cdfcda0690b6e81694908357c937eb67674bc1ac760",
   "scripts/windows-seal.test.ps1": "2657837b4423c9d8824955ead9afed1676d0f71acc5407f26ee6a843cc009b8c",
   "tsconfig.json": "dcfe880f07cb1561fa45208621d2c1e58f8f3fff275c655c673c4047e84096bb"

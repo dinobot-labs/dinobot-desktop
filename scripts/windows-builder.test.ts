@@ -60,11 +60,11 @@ for (const sign of [false, true]) {
   expect(result.stderr.toString()).toBe('');
   expect(result.exitCode).toBe(0);
   expect(result.stdout.toString()).toContain('validated');
- });
+ }, 30_000); // Cold PowerShell + builder module startup can exceed Bun's 5s default.
 }
 test('requested signing without credentials fails before builder invocation', () => {
  const result = probe(true, false);
  expect(result.exitCode).not.toBe(0);
  expect(result.stderr.toString()).toContain('Requested signing credentials are unavailable');
  expect(result.stdout.toString()).not.toContain('validated');
-});
+}, 30_000);
