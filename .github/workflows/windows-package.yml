@@ -91,12 +91,12 @@ jobs:
         run: |
           if ($env:REQUIRE_SIGNATURE -eq 'true') {
             if (!$env:CSC_LINK) { throw 'Requested signing credentials are unavailable' }
-            bun x --no-install electron-builder --win nsis --x64 --publish never '--config.forceCodeSigning=true'
+            bun x --no-install electron-builder --win nsis --x64 --publish never '--config.forceCodeSigning=true' '--config.nsis.publish=null'
           } else {
             Remove-Item Env:CSC_LINK -ErrorAction SilentlyContinue
             Remove-Item Env:CSC_KEY_PASSWORD -ErrorAction SilentlyContinue
             $env:CSC_IDENTITY_AUTO_DISCOVERY = 'false'
-            bun x --no-install electron-builder --win nsis --x64 --publish never '--config.forceCodeSigning=false'
+            bun x --no-install electron-builder --win nsis --x64 --publish never '--config.forceCodeSigning=false' '--config.nsis.publish=null'
           }
           if ($LASTEXITCODE -ne 0) { throw 'Packaging failed' }
       - name: Verify signatures and seal installer lineage without executing installer

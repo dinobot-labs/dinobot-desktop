@@ -20,6 +20,8 @@ const assert = require('node:assert/strict');
 const r = createRequire(${JSON.stringify(builder)});
 const {createYargs, configureBuildCommand, normalizeOptions} = r('./out/builder.js');
 const {validateConfiguration} = r('app-builder-lib/out/util/config/config.js');
+const {getPublishConfigs} = r('app-builder-lib/out/publish/PublishManager.js');
+const {createUpdateInfoTasks} = r('app-builder-lib/out/publish/updateInfoBuilder.js');
 (async () => {
  const argv = process.argv.slice(2);
  assert.deepEqual(argv.slice(0, 3), ['x', '--no-install', 'electron-builder']);
@@ -28,6 +30,12 @@ const {validateConfiguration} = r('app-builder-lib/out/util/config/config.js');
  await validateConfiguration(options.config, {isEnabled:false});
  assert.equal(options.config.forceCodeSigning, ${sign});
  assert.equal(options.publish, 'never');
+ // Match CI: GH_TOKEN exists but checkout has no discoverable repository.
+ const packager = {config:options.config, platformSpecificBuildOptions:{}, expandMacro: value => value,
+  appInfo:{channel:null}, info:{config:options.config, repositoryInfo:Promise.resolve(null), appInfo:{channel:null}}};
+ const publishers = await getPublishConfigs(packager, options.config.nsis, 1, false);
+ assert.equal(publishers, null, 'package-only NSIS must disable implicit publishers');
+ assert.deepEqual(await createUpdateInfoTasks({packager, arch:1}, publishers), []);
  assert.deepEqual([...options.targets].map(([p,a]) => [p.name,[...a]]), [['windows',[[1,['nsis']]]]]);
  assert.equal(Boolean(process.env.CSC_LINK), ${sign});
  assert.equal(Boolean(process.env.CSC_KEY_PASSWORD), ${sign});
@@ -38,7 +46,7 @@ const {validateConfiguration} = r('app-builder-lib/out/util/config/config.js');
   const ps = join(dir, 'probe.ps1');
   writeFileSync(ps, "$ErrorActionPreference = 'Stop'\nfunction bun { & node $env:BUILDER_PROBE @args; $global:LASTEXITCODE = $LASTEXITCODE }\n" + command);
   return Bun.spawnSync(['pwsh', '-NoProfile', '-File', ps], {
-   cwd: root, env: { ...process.env, BUILDER_PROBE: js, REQUIRE_SIGNATURE: String(sign),
+   cwd: root, env: { ...process.env, GH_TOKEN: 'test-only-token', BUILDER_PROBE: js, REQUIRE_SIGNATURE: String(sign),
     CSC_LINK: credentials ? 'test-only-not-a-certificate' : '', CSC_KEY_PASSWORD: credentials ? 'test-only' : '' },
    stdout: 'pipe', stderr: 'pipe',
   });
