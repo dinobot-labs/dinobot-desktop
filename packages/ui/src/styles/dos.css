@@ -41,6 +41,8 @@ html[data-appearance^="dos-"] .md .hljs-deletion { color: var(--dos-error); back
 html[data-appearance^="dos-"] .shimmer { background-image: none; -webkit-text-fill-color: currentColor; }
 html[data-appearance^="dos-"] .shimmer-group { mask-image: none; }
 html[data-appearance^="dos-"] .dn-scan { display: none; }
-/* No CRT overlay, blinking cursor or simulated progress; real stream and tool timing are untouched. */
-html[data-appearance^="dos-"] *, html[data-appearance^="dos-"] *::before, html[data-appearance^="dos-"] *::after { animation: none !important; transition: none !important; }
+/* Keep functional loading/status spinners; motion.css still stops them for reduced motion.
+ * No decorative loops, CRT overlay, blinking cursor or simulated progress. */
+html[data-appearance^="dos-"] *:not(.dn-spin), html[data-appearance^="dos-"] *::before, html[data-appearance^="dos-"] *::after { animation: none !important; }
+html[data-appearance^="dos-"] *, html[data-appearance^="dos-"] *::before, html[data-appearance^="dos-"] *::after { transition: none !important; }
 @media (prefers-reduced-motion: reduce) { html[data-appearance^="dos-"] * { scroll-behavior: auto !important; } }
