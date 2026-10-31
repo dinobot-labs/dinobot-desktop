@@ -47,7 +47,7 @@ export function Composer({
 				aria-label="Message"
 				className="block max-h-60 min-h-14 w-full resize-none bg-transparent px-3.5 pt-3 text-md leading-[var(--lh-chat)] text-fg outline-none placeholder:text-fg-3"
 			/>
-			<div className="flex items-center gap-1.5 px-2 pb-2">
+			<div data-slot="composer-toolbar" className="flex items-center gap-1.5 px-2 pb-2">
 				<Button variant="ghost" size="icon-sm" aria-label="Attach">
 					<IconPaperclip />
 				</Button>

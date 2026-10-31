@@ -515,7 +515,7 @@ export function Composer({ busy, disabled, hasQueue, threadKey, cwd, model, usag
 					data-testid="composer-input"
 					className="selectable block max-h-[40vh] min-h-12 w-full resize-none bg-transparent px-3.5 pt-3 pb-1 text-md leading-[var(--lh-chat)] text-fg outline-none placeholder:text-fg-3"
 				/>
-				<div className="flex items-center gap-1 px-2 pb-2">
+				<div data-slot="composer-toolbar" className="flex items-center gap-1 px-2 pb-2">
 					<Tooltip content={desktop?.stageAttachment ? "파일 첨부 (붙여넣기·끌어 놓기도 돼요)" : "이미지 첨부 (붙여넣기·끌어 놓기도 돼요)"}>
 						<label className={cn("flex size-7 cursor-pointer items-center justify-center rounded-md text-fg-2 hover:bg-hover hover:text-fg", disabled && "pointer-events-none")}>
 							<IconPaperclip size={16} />
@@ -534,7 +534,7 @@ export function Composer({ busy, disabled, hasQueue, threadKey, cwd, model, usag
 						</label>
 					</Tooltip>
 					{model ? (
-						<div className="flex min-w-0 items-center gap-0.5" data-testid="model-line">
+						<div data-slot="composer-model" className="flex min-w-0 items-center gap-0.5" data-testid="model-line">
 							<Tooltip content="모델 바꾸기 (/model)">
 								<button type="button" onClick={() => onCommand("model", "")} className="h-6 max-w-48 cursor-pointer truncate rounded-sm px-1.5 font-mono text-xs text-fg-2 hover:bg-hover hover:text-fg">
 									{model.model.split("/").pop()}

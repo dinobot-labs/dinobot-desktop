@@ -31,6 +31,18 @@ html[data-appearance^="dos-"] :where([data-slot="tool-call"], [data-slot="ask-ca
 html[data-appearance^="dos-"] :where([aria-selected="true"], [aria-checked="true"], [data-thread].bg-hover) { background: var(--dos-ink); color: #000; }
 html[data-appearance^="dos-"] :where([aria-selected="true"], [aria-checked="true"]) * { color: inherit; }
 html[data-appearance^="dos-"] :focus-visible { outline: 2px solid var(--dos-focus); outline-offset: 2px; }
+/* DOS uses a full-size bitmap font: compact fixed-height controls cannot contain its line boxes.
+ * Keep the double frame, but put focus on that frame rather than drawing across the toolbar. */
+html[data-appearance^="dos-"] [data-slot="composer"]:focus-within { border-color: var(--dos-focus); }
+html[data-appearance^="dos-"] [data-slot="composer"] textarea:focus-visible { outline: none; }
+html[data-appearance^="dos-"] [data-slot="composer-toolbar"] { flex-wrap: wrap; gap: 8px; padding: 8px; }
+html[data-appearance^="dos-"] [data-slot="composer-toolbar"] :where(button, label, [tabindex]) { min-height: 32px; height: auto; flex-shrink: 0; white-space: nowrap; }
+html[data-appearance^="dos-"] [data-slot="composer-toolbar"] :where(label, [data-slot="button"]) { width: 32px; }
+html[data-appearance^="dos-"] [data-slot="composer-toolbar"] > [data-slot="button"]:last-child { margin-left: auto; }
+html[data-appearance^="dos-"] [data-slot="composer-model"] { flex-wrap: wrap; gap: 4px; max-width: 100%; }
+html[data-appearance^="dos-"] :where([data-slot="composer"], [data-slot="hint-bar"]) [data-slot="kbd"] { height: 28px; min-width: 28px; padding-inline: 4px; font-size: 16px; line-height: 1; }
+html[data-appearance^="dos-"] [data-slot="hint-bar"] { column-gap: 16px; row-gap: 8px; }
+html[data-appearance^="dos-"] [data-slot="hint-separator"] { display: none; }
 html[data-appearance^="dos-"] ::selection { background: var(--dos-ink); color: #000; }
 html[data-appearance^="dos-"] .dot-paper { background-image: none; }
 html[data-appearance^="dos-"] .md :where(pre, code) { font-size: 16px; }
