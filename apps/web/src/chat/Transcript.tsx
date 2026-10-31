@@ -5,7 +5,7 @@ import { createContext, type ReactNode, useContext, useEffect, useLayoutEffect, 
 import { useNow, useSession } from "../lib/hooks.ts";
 import { useSettings } from "../lib/settings.ts";
 import { useUi } from "../state/ui.ts";
-import { AgentRow, AssistantHeader, GROUP_VERB, NoticeRow, SubagentRow, ThinkingRow, ToolGroupRow, ToolRow, UserRow } from "./blocks.tsx";
+import { AgentRow, AssistantHeader, GROUP_VERB, NoticeRow, NudgeRow, SubagentRow, ThinkingRow, ToolGroupRow, ToolRow, UserRow } from "./blocks.tsx";
 import type { ToolBlock } from "./model.ts";
 import type { BlockView } from "./protocol.ts";
 import type { ChatSession } from "./session.ts";
@@ -16,12 +16,13 @@ export const SessionContext = createContext<ChatSession | null>(null);
 export const useChatSession = () => useContext(SessionContext);
 
 /** Blocks the agent produced share one header per run of assistant output (between user turns and notices). */
-const isAgentOutput = (b: BlockView | undefined) => b !== undefined && b.kind !== "user" && !(b.kind === "notice" && b.level !== "error");
+const isAgentOutput = (b: BlockView | undefined) => b !== undefined && b.kind !== "user" && b.kind !== "nudge" && !(b.kind === "notice" && b.level !== "error");
 const groupable = (b: BlockView | undefined): b is ToolBlock => b?.kind === "tool" && b.name in GROUP_VERB && b.status !== "error";
 
 function blockText(b: BlockView): string {
 	switch (b.kind) {
 		case "user":
+		case "nudge":
 		case "agent":
 		case "thinking":
 		case "notice":
@@ -242,6 +243,8 @@ export function Transcript({ session, keyboard = true }: { session: ChatSession;
 
 	const render = (block: BlockView, index: number): ReactNode => {
 		switch (block.kind) {
+			case "nudge":
+				return <NudgeRow block={block} version={block.version} activeSearch={findOpen && matches[hit] === index} />;
 			case "user":
 				return <UserRow block={block} version={block.version} />;
 			case "agent":

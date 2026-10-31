@@ -1,0 +1,14 @@
+import { createRoot } from "react-dom/client";
+import { TooltipProvider } from "@dinobot/ui";
+import { Transcript } from "../../src/chat/Transcript.tsx";
+import { ChatSession } from "../../src/chat/session.ts";
+import { createChatData, ingestEntry } from "../../src/chat/model.ts";
+import "../../src/styles.css";
+const text = '<from host="subagents"/>\nBackground work changed state after your last answer:\nSynthetic task completed; another is blocked.\n<script>window.untrusted = true</script>';
+const data = createChatData();
+for (const [i, raw] of ['<from user="local" channel="tui"/>\n작업 상태를 확인해 줘', text].entries()) ingestEntry(data, {id:i+1,conversationId:1,kind:"pi.user",model:[{role:"user",content:raw,timestamp:1234567890000}]},1);
+data.blocks.push({kind:"agent",id:"a",version:1,text:"일부 작업을 마쳤어요. 남은 작업을 확인할게요.",at:1234567890001,streaming:false});
+for (const [i, raw] of [text + "\nSecond wake", '<from user="local" channel="tui"/>\n' + text].entries()) ingestEntry(data, {id:i+3,conversationId:1,kind:"pi.user",model:[{role:"user",content:raw,timestamp:1234567890002}]},1);
+const session = ChatSession.forThread("tui:synthetic-nudge-qa");
+session.receive({type:"patch",key:session.key,order:data.blocks.map(b=>b.id),blocks:data.blocks,side:{...session.side,snapshots:1,total:data.blocks.length},status:{state:"live",attempt:0}});
+createRoot(document.getElementById("root")!).render(<TooltipProvider><main className="flex h-full flex-col bg-bg text-fg"><Transcript session={session} /></main></TooltipProvider>);

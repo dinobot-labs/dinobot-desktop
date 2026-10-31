@@ -1,0 +1,23 @@
+# Automatic subagent wake presentation
+
+## Decision
+
+A dedicated `nudge` transcript block distinguishes host input from both human prompts and model responses. It reuses AssistantHeader/DinoMark and the neutral Badge, existing surface/line/text tokens, and locale time. The summary is “작업을 이어가기 위한 자동 알림이에요”. A native button starts collapsed and connects to escaped, selectable raw text through aria-expanded/aria-controls. No outcome is inferred from prose.
+
+## Provenance boundary
+
+Core canonical c443d03: src/extensions/subagents.ts WAKE_PREFIX/wakeMessage produces a string beginning exactly `<from host="subagents"/>` plus LF. Bot.submit in src/core/bot.ts routes channel messages through formatInputContent (src/core/input.ts): an outer `<from user="…" channel="…"/>` header precedes all human text, including pasted host headers. With images, the same human envelope is the first text part. Desktop ChatView sends normal text and ask choices through api.send → routes.messages → POST /v1/threads/:channel/:thread/messages; that endpoint calls bot.prepareChoice then bot.submit, so it does not admit unwrapped body text.
+
+Installed pi-durable dist/entries.d.ts declares UserEntry as Entry<never>; dist/harness/submissions.js and inbox.js append only model:[message], without origin metadata. Request IDs live on separate submissions, not pi.user data. Therefore classification happens before header stripping, only for the exact raw string prefix emitted by wakeMessage. Unknown hosts, malformed headers, arrays and quoted/pasted body headers retain their prior presentation. This is a display contract for normal channel admission, not a security/authentication primitive for arbitrary low-level entry writers. Changes to producer framing require updating this contract; no server change is needed. dinobot.nudge still means memory recall.
+
+## Closed consumer set
+
+The reducer is the sole classification owner, for snapshots and live entries; existing entry-ID deduplication remains. Wakes never mark asks answered. A distinct kind naturally excludes them from Transcript prompt navigation/pinned user and worker firstUserText/title. Assistant grouping stops at a nudge and restarts for the subsequent model answer. Transcript search includes full raw text. Only the active search hit temporarily reveals its raw nudge payload; other matches stay in their manual disclosure state. Leaving the hit or closing search restores the manual state (collapsed by default). The native disclosure button remains keyboard-operable during search: explicit open/close choices override the temporary reveal and persist after search ends. Worker trim/full hydration applies only to tools; nudge text is never trimmed, so no extra hydration path is needed. BlockView is derived from Block and session/store transport carries it unchanged. Model response and normal UserRow/image/ask rendering are unchanged.
+
+## Checks
+
+Focused reducer and React rendering tests cover snapshot/live/replay dedupe, exact/unknown/quoted/human envelopes, images, ask answers and memory notices. Browser fixture reduces synthetic entries into a real ChatSession and mounts the full Transcript with production CSS. It checks next-assistant header, disclosure remeasurement, keyboard activation, independent disclosure state/IDs, exact escaped raw readback, prompt navigation/pin, raw search, and narrow/light/dark screenshot QA. It does not call a live daemon or provider. Screenshots are disposable evidence, not committed assets.
+
+Run `bun test apps/web/test/nudge.test.tsx apps/web/test/model.test.ts apps/web/test/context-usage.test.tsx apps/web/test/attachments.test.ts` and `bun apps/web/scripts/nudge-browser-qa.ts` (installed Chrome required). The browser script closes its server/browser and writes to the OS temp directory under dinobot-nudge-qa, overridable with NUDGE_QA_DIR. Typecheck and production build remain separate checks.
+
+Integration validation (2026-10-31): rebased onto canonical main f161cc3, preserving memory recall and DOS appearance changes. `bun run typecheck` and `bun run --cwd apps/web build` passed. The old nudge test expected the legacy empty-memory summary; canonical main now stores `recall: []` and empty text, so the assertion was updated to that contract without changing runtime memory behavior. All 9 nudge/recall integration tests and the full headless Transcript QA passed afterward. Earlier 59 focused checks were not repeated wholesale. Final integration also preserves canonical dd1160d (Windows packaging and open-question composer fixes); typecheck and production build passed on that base. No user windows were operated and no installed renderer, executable or daemon was replaced during this resumed delivery.

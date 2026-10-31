@@ -8,6 +8,11 @@ export const EN: Readonly<Record<string, string>> = {
 	"프로젝트 기억{0}": "Project memory{0}",
 	" · 저장 {0}": " · Saved {0}",
 	"전달된 기억이 없어요.": "No memories were provided.",
+	// Automatic host wake disclosure
+	"자동 알림": "Automatic notification",
+	"작업을 이어가기 위한 자동 알림이에요": "An automatic notification to continue the work",
+	"내부 알림 보기": "Show internal notification",
+	"내부 알림 접기": "Hide internal notification",
 	// Provider-reported context, not an estimated system/message split.
 	"마지막 제공자 보고 토큰": "Last provider-reported tokens",
 	"합계 {0}": "Total {0}",

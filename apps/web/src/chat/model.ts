@@ -43,6 +43,8 @@ import { recalledMemories, type RecalledMemory } from "./recall.ts";
 type BlockBase = { readonly id: string; version: number };
 export type ImagePart = { readonly mimeType: string; readonly data: string };
 export type UserBlock = BlockBase & { kind: "user"; text: string; at: number; images?: readonly ImagePart[] };
+/** A host wake, not a human prompt or a model response. Text remains the exact raw transport input. */
+export type NudgeBlock = BlockBase & { kind: "nudge"; text: string; at: number };
 export type AgentBlock = BlockBase & { kind: "agent"; text: string; at: number; streaming: boolean };
 export type ThinkingBlock = BlockBase & { kind: "thinking"; text: string; startedAt: number; endedAt?: number; streaming: boolean };
 export type ToolStatus = "pending" | "running" | "done" | "error" | "cancelled";
@@ -63,7 +65,7 @@ export type ToolBlock = BlockBase & {
 export type SubagentBlock = BlockBase & { kind: "subagent"; callId: string; progress: SubagentProgress };
 export type NoticeLevel = "info" | "error" | "turn";
 export type NoticeBlock = BlockBase & { kind: "notice"; text: string; level: NoticeLevel; recall?: readonly RecalledMemory[]; elapsedMs?: number; tps?: number };
-export type Block = UserBlock | AgentBlock | ThinkingBlock | ToolBlock | SubagentBlock | NoticeBlock;
+export type Block = UserBlock | NudgeBlock | AgentBlock | ThinkingBlock | ToolBlock | SubagentBlock | NoticeBlock;
 
 export type RunPhase = "waiting_response" | "thinking" | "responding" | "tool" | "waiting_subagents" | "compacting" | "retry";
 export type RunState = {
@@ -553,6 +555,12 @@ export function ingestEntry(d: ChatData, entry: EntryRecord, now: number): void 
 	switch (entry.kind) {
 		case "pi.user":
 			if (message?.role === "user") {
+				// wakeMessage submits this exact string envelope; Bot.submit always prefixes human input.
+				// Classify before stripFromHeader, never by a body match or inferred outcome.
+				if (typeof message.content === "string" && message.content.startsWith('<from host="subagents"/>\n')) {
+					push(d, { kind: "nudge", id: newId("nudge"), version: 0, text: message.content, at: message.timestamp });
+					return;
+				}
 				const images = Array.isArray(message.content)
 					? message.content.flatMap((p) => (p.type === "image" ? [{ mimeType: p.mimeType, data: p.data }] : []))
 					: [];

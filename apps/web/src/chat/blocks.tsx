@@ -1,11 +1,11 @@
 import { localeTag } from "@dinobot/ui/i18n";
-import { cn, Dialog, DialogPopup, DinoMark, Shimmer, STATUS, StatusMark, type StatusKind, statusTextClass, ToolCall } from "@dinobot/ui";
+import { Badge, cn, Dialog, DialogPopup, DinoMark, Shimmer, STATUS, StatusMark, type StatusKind, statusTextClass, ToolCall } from "@dinobot/ui";
 import { IconBrain, IconCheck, IconChevronRight, IconCode, IconCopy, IconFile, IconPencil, IconRobot, IconSearch, IconTerminal2, IconTool, IconWorld } from "@tabler/icons-react";
-import { memo, type ReactNode, useState } from "react";
+import { memo, type ReactNode, useId, useState } from "react";
 import { openSettings, openSubagent } from "../state/app.ts";
 import { formatElapsed } from "../lib/hooks.ts";
 import { Markdown } from "./Markdown.tsx";
-import type { AgentBlock, NoticeBlock, SubagentBlock, ThinkingBlock, ToolBlock, UserBlock } from "./model.ts";
+import type { AgentBlock, NudgeBlock, NoticeBlock, SubagentBlock, ThinkingBlock, ToolBlock, UserBlock } from "./model.ts";
 import type { BlockView } from "./protocol.ts";
 import { useChatSession } from "./Transcript.tsx";
 import { codemodeCalls, formatDuration, toolSummary } from "./tool-summary.ts";
@@ -289,13 +289,34 @@ export const NoticeRow = memo(function NoticeRow({ block }: { block: NoticeBlock
 	return <div className="selectable truncate text-center text-micro text-fg-3" title={block.text}>{block.text}</div>;
 });
 
-export function AssistantHeader({ at }: { at?: number }) {
+export const NudgeRow = memo(function NudgeRow({ block, activeSearch = false }: { block: NudgeBlock; version: number; activeSearch?: boolean }) {
+	const [disclosure, setDisclosure] = useState({ manualOpen: false, activeSearch, searchOpen: true });
+	// Search reveal is temporary; explicit button choices remain the manual state.
+	if (disclosure.activeSearch !== activeSearch) {
+		setDisclosure({ ...disclosure, activeSearch, searchOpen: true });
+	}
+	const open = activeSearch ? (disclosure.activeSearch === activeSearch ? disclosure.searchOpen : true) : disclosure.manualOpen;
+	const detailsId = useId();
+	return (
+		<section className="min-w-0 pl-9" aria-label="자동 알림" data-role="nudge">
+			<AssistantHeader at={block.at} badge={<Badge variant="neutral">자동 알림</Badge>} />
+			<p className="text-sm text-fg-2">작업을 이어가기 위한 자동 알림이에요</p>
+			<button type="button" aria-expanded={open} aria-controls={detailsId} onClick={() => setDisclosure({ activeSearch, manualOpen: !open, searchOpen: !open })} className="mt-1 cursor-pointer rounded-sm text-xs text-fg-3 hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+				{open ? "내부 알림 접기" : "내부 알림 보기"}
+			</button>
+			<div id={detailsId} hidden={!open} className="selectable mt-2 whitespace-pre-wrap break-words rounded-md border border-line bg-surface p-3 font-mono text-xs text-fg-2">{block.text}</div>
+		</section>
+	);
+});
+
+export function AssistantHeader({ at, badge }: { at?: number; badge?: ReactNode }) {
 	return (
 		<div className="mb-1.5 -ml-9 flex items-center gap-2 text-xs">
 			<div className="flex size-7 items-center justify-center rounded-md border border-line bg-surface">
 				<DinoMark size={22} />
 			</div>
 			<span className="font-semibold text-fg">dinobot</span>
+			{badge}
 			{at ? <span className="text-fg-3">{new Date(at).toLocaleTimeString(localeTag(), { hour: "numeric", minute: "2-digit" })}</span> : null}
 		</div>
 	);
