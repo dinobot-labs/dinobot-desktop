@@ -1,0 +1,90 @@
+name: Windows package
+on:
+  workflow_dispatch:
+    inputs:
+      core_run_id:
+        description: Successful official core Release run at the daemon tag source
+        required: true
+        type: string
+      sign:
+        description: Optional signing (requires configured Windows signing credentials)
+        required: false
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: windows-package
+  cancel-in-progress: false
+jobs:
+  package:
+    if: github.repository == 'dinobot-labs/dinobot-desktop' && github.ref == 'refs/heads/main'
+    runs-on: windows-2025
+    timeout-minutes: 30
+    environment: windows-release
+    env:
+      DEEPWORK_TYPECHECK_JOBS: '2'
+      GH_TOKEN: ${{ github.token }}
+      CORE_RUN_ID: ${{ inputs.core_run_id }}
+      REQUIRE_SIGNATURE: ${{ inputs.sign }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.4.3
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - run: bun run check:public
+      - run: bun run typecheck
+      - run: bun test scripts/windows-artifact.test.ts apps/desktop/test/bytecode.test.ts apps/desktop/test/browser
+      - name: Verify unsigned default and requested-signing failure behavior
+        run: pwsh -NoProfile -File scripts/windows-seal.test.ps1
+      - name: Bind successful core release, CI archive and npm bytes
+        run: bun scripts/windows-artifact.ts
+      - name: Install upstream Electron runtime in this disposable runner only
+        working-directory: apps/desktop
+        run: node node_modules/electron/install.js
+      - name: Generate source-owned icon and build
+        working-directory: apps/desktop
+        run: |
+          bun scripts/icon.ts
+          if ($LASTEXITCODE -ne 0) { throw 'Icon generation failed' }
+          bun run build
+          if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
+      - name: Stage exact verified archive with existing protocol audit
+        working-directory: apps/desktop
+        run: |
+          $lineage = Get-Content ../../core-artifact/lineage.json | ConvertFrom-Json
+          $tar = (Resolve-Path "../../core-artifact/dinobot-$($lineage.version).tgz").Path
+          bun scripts/stage-daemon.ts --os win --arch x64 --dinobot-tarball $tar --sha256 $lineage.sha256
+          if ($LASTEXITCODE -ne 0) { throw 'Daemon staging failed' }
+      - name: Windows NSIS only, optional signing (never publish from builder)
+        working-directory: apps/desktop
+        env:
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: |
+          if ($env:REQUIRE_SIGNATURE -eq 'true') {
+            if (!$env:CSC_LINK) { throw 'Requested signing credentials are unavailable' }
+            bun x --no-install electron-builder --win nsis --x64 --publish never -c.forceCodeSigning=true
+          } else {
+            Remove-Item Env:CSC_LINK -ErrorAction SilentlyContinue
+            Remove-Item Env:CSC_KEY_PASSWORD -ErrorAction SilentlyContinue
+            $env:CSC_IDENTITY_AUTO_DISCOVERY = 'false'
+            bun x --no-install electron-builder --win nsis --x64 --publish never -c.forceCodeSigning=false
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Packaging failed' }
+      - name: Verify signatures and seal installer lineage without executing installer
+        run: pwsh -NoProfile -File scripts/windows-seal.ps1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-package-${{ github.sha }}
+          path: |
+            apps/desktop/release/dinobot-setup-*.exe
+            apps/desktop/release/windows-lineage.json
+          if-no-files-found: error
+          retention-days: 30

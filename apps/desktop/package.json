@@ -1,7 +1,7 @@
 {
   "name": "@dinobot/desktop",
   "productName": "dinobot",
-  "version": "0.1.2-local.browser.1",
+  "version": "0.1.5",
   "private": true,
   "description": "dinobot desktop",
   "main": "dist/main.cjs",
@@ -16,7 +16,7 @@
     "dist:win": "bun run build && bun scripts/stage-daemon.ts --os win --arch x64 && electron-builder --win nsis --x64 --publish never"
   },
   "dinobotDaemon": {
-    "dinobot": "0.7.15-local.browser.1",
+    "dinobot": "0.8.4",
     "bun": "1.4.3"
   },
   "devDependencies": {
