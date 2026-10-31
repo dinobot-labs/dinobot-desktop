@@ -41,6 +41,8 @@ jobs:
       - run: bun run check:public
       - run: bun run typecheck
       - run: bun test scripts/windows-artifact.test.ts apps/desktop/test/bytecode.test.ts apps/desktop/test/browser
+      - name: Verify unsigned default and requested-signing failure behavior
+        run: pwsh -NoProfile -File scripts/windows-seal.test.ps1
       - name: Bind successful core release, CI archive and npm bytes
         run: bun scripts/windows-artifact.ts
       - name: Install upstream Electron runtime in this disposable runner only

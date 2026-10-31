@@ -5,7 +5,7 @@
   ".github/assets/logo.svg": "52161b2a8e896657ac44fda78f0641ae8665b8a1cb6a7085eecd0e85bcda631b",
   ".github/pull_request_template.md": "e48a2f52cc018c91ae9674d6d2e093bc3ebf64c1b4770f7d7bcd2e1126b53a71",
   ".github/workflows/public-source.yml": "9a9ce6d451015646e5b6b048ac3c1852dfda9e77c3a865b046b735f0078812ce",
-  ".github/workflows/windows-package.yml": "d67c3935c67948a2c4738f5b36a8017630a6b0f5e2fa9208bc8b1bdda9136382",
+  ".github/workflows/windows-package.yml": "a7863d20402f391dc427b41da4df993d86ed963a542e708f93e1604d8dc09288",
   ".gitignore": "081a48212aaa1c13a6259f250a949147aabf66b15465790e2341a6a7a6eb6cc7",
   "CODE_OF_CONDUCT.md": "2e620c2179718a471f8ce5a6cff65f7ddda278c9209699473bec814b2d3caf72",
   "CONTRIBUTING.md": "1f0f4c42adb9a3c67ebad89ad107e6bc6039594b4584ddd7cfd7fca5e87ef6af",
@@ -706,5 +706,6 @@
   "scripts/windows-artifact.test.ts": "be2d3d0e3081727b6c40915e3e3a441b3ea8659dd3de6ffc9a4afeee73d63d90",
   "scripts/windows-artifact.ts": "43fc8b9ed7c629232775e8c74e69e49ae0fb6d28d900098da2e80903e3777985",
   "scripts/windows-seal.ps1": "47b56a506030a2483d65f02e6a97280df4fe131e0270c20ac584fd5f0156b4bc",
+  "scripts/windows-seal.test.ps1": "a58ba3664d1a89e1a99942f27c3038a5cc9bd39cdcf46deef514985d94fbb731",
   "tsconfig.json": "dcfe880f07cb1561fa45208621d2c1e58f8f3fff275c655c673c4047e84096bb"
 }
