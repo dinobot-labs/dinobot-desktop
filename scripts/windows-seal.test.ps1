@@ -1,4 +1,7 @@
 $ErrorActionPreference = 'Stop'
+$savedSignature = $env:REQUIRE_SIGNATURE
+$savedSource = $env:DESKTOP_SOURCE_SHA
+$savedGithub = $env:GITHUB_SHA
 $env:REQUIRE_SIGNATURE = 'true'
 $root = Join-Path $PSScriptRoot '../reports/seal-negative-fixture'
 try {
@@ -18,8 +21,20 @@ try {
   $env:REQUIRE_SIGNATURE = 'false'
   Set-Content "$root/apps/desktop/release/win-unpacked/dinobot.exe" 'unsigned app fixture, never executed'
   Set-Content "$root/apps/desktop/release/win-unpacked/resources/daemon/bun.exe" 'unsigned runtime fixture, never executed'
+  $actualSource = (git -C $root rev-parse HEAD).Trim()
+  $env:DESKTOP_SOURCE_SHA = ('b'*40)
+  $rejected = $false
+  try { & "$root/scripts/windows-seal.ps1" } catch { if ($_.Exception.Message -notmatch 'Desktop source identity mismatch') { throw }; $rejected = $true }
+  if (!$rejected) { throw 'Incorrect Desktop pin accepted' }
+  $env:DESKTOP_SOURCE_SHA = $actualSource
+  $env:GITHUB_SHA = ('c'*40)
   & "$root/scripts/windows-seal.ps1"
   $result = Get-Content "$root/apps/desktop/release/windows-lineage.json" | ConvertFrom-Json
-  if ($result.installerSigned -ne $false -or $result.signingRequested -ne $false -or !$result.installerSha256) { throw 'Unsigned status or digest incorrectly recorded' }
+  if ($result.sourceSha -ne $actualSource -or $result.installerSigned -ne $false -or $result.signingRequested -ne $false -or !$result.installerSha256) { throw 'Unsigned status or digest incorrectly recorded' }
   Write-Output 'Seal checks passed: daemon mismatch rejected; requested signing rejects unsigned; default unsigned records false plus digest without execution'
-} finally { Remove-Item -Recurse -Force $root -ErrorAction SilentlyContinue }
+} finally {
+  $env:REQUIRE_SIGNATURE = $savedSignature
+  $env:DESKTOP_SOURCE_SHA = $savedSource
+  $env:GITHUB_SHA = $savedGithub
+  Remove-Item -Recurse -Force $root -ErrorAction SilentlyContinue
+}

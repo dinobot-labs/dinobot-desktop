@@ -6,6 +6,12 @@ Desktop 0.1.5 targets official dinobot 0.8.4 and Bun 1.4.3. This is **Dinobot ap
 
 The Windows package workflow accepts a successful official core Release run ID, at the exact v0.8.4 tag commit. Unrelated CI, other repositories, incomplete runs and runs whose workflow head differs from the tag are rejected. It downloads that run's audited npm archive, compares SHA-512 against CI SHA512SUMS and npm dist.integrity, then records SHA-256. A registry version's existence alone is not source provenance.
 
+Explicit `core_source_mode=github` instead requires all exact source/check jobs to pass at that tag SHA. A completed Release failure is accepted **only** when the sole failed job/step is npm Trusted Publishing, after tag binding, downloaded-payload audit and registry preflight passed. Missing, skipped, cancelled, mismatched or failed source checks are rejected. Package-only retry runs are not a substitute for the full source-check run. This mode makes no npm requests and records `npm: {status: "unverified", used: false}`; it does not claim npm publication. The default `npm` mode still requires a successful run and matching registry integrity.
+
+GitHub mode selects a unique non-expired artifact from the exact run/source, downloads by artifact ID, verifies its GitHub SHA-256 ZIP digest, requires only the expected archive and SHA512SUMS, and checks the tarball checksum. It fetches package.json and the strict release auditor from that immutable source SHA, verifies both against SOURCE_SHA256SUMS, then reruns that source-owned auditor (six regular members, exact package/version/dependencies, notices and leak checks). Lineage records the artifact ID/digest, source manifest digest and the two verified manifest entries; it does not claim a full source-tree manifest audit. GNU tar is required; Windows uses Git for Windows GNU tar when available.
+
+`source_sha` optionally pins a full lowercase Desktop commit SHA already on main; checkout, main ancestry, package seal and artifact name all bind that pin rather than a newer dispatch commit. Without it the dispatch SHA remains the default.
+
 Unchanged stage-daemon checks enforce archive digest and package identity, Bun download checksum, installed version, native addon presence and passive browser-protocol compatibility. The package seal binds:
 
 Desktop source SHA → core source SHA/run/tag → tarball SHA-256/npm integrity → packaged daemon marker → installer SHA-256 and observed signature status.
@@ -22,6 +28,10 @@ After authorized integration, not executed by this preparation:
 
     gh workflow run windows-package.yml --repo dinobot-labs/dinobot-desktop --ref main -f core_run_id=SUCCESSFUL_CORE_RELEASE_RUN_ID -f sign=false
     gh run download WINDOWS_RUN_ID --repo dinobot-labs/dinobot-desktop --name windows-package-DESKTOP_SOURCE_SHA --dir VERIFIED_WINDOWS_OUTPUT
+
+For an authorized GitHub-only build (no npm publication prerequisite):
+
+    gh workflow run windows-package.yml --repo dinobot-labs/dinobot-desktop --ref main -f core_run_id=SOURCE_CHECKED_CORE_RELEASE_RUN_ID -f core_source_mode=github -f source_sha=REVIEWED_DESKTOP_40_HEX_SHA -f sign=false
 
 The workflow only uploads build artifacts. It does not publish a release, change the endpoint, run an installer or restart an app. A maintainer may later create a draft GitHub v0.1.5 release targeting the exact source SHA, upload the Windows installer and windows-lineage.json, re-read asset digests, and publish after acceptance. State unsigned explicitly in release notes.
 
