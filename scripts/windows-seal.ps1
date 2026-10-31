@@ -16,6 +16,7 @@ foreach ($path in @($installer, $app, $bun)) {
 }
 $source = (git -C $root rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or $source -notmatch '^[0-9a-f]{40}$') { throw 'No Desktop source SHA' }
-if ($env:GITHUB_SHA -and $source -ne $env:GITHUB_SHA) { throw 'Desktop source identity mismatch' }
+$expectedSource = if ($env:DESKTOP_SOURCE_SHA) { $env:DESKTOP_SOURCE_SHA } else { $env:GITHUB_SHA }
+if ($expectedSource -and $source -ne $expectedSource) { throw 'Desktop source identity mismatch' }
 @{ schema = 1; repository = 'dinobot-labs/dinobot-desktop'; sourceSha = $source; version = $pkg.version; platform = 'win-x64'; core = $core; daemon = $daemon; signatures = $signatures; installerSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $installer).Hash.ToLowerInvariant(); signingRequested = ($env:REQUIRE_SIGNATURE -eq 'true'); installerSigned = ($signatures[0].status -eq 'Valid'); acceptance = 'Package identity and observed signature status only; native UI flow and target SAC acceptance still required' } | ConvertTo-Json -Depth 8 | Set-Content -Encoding utf8 "$release/windows-lineage.json"
 Write-Output 'Sealed Windows artifact with observed signature status; installer was NOT executed.'

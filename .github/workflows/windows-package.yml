@@ -3,9 +3,18 @@ on:
   workflow_dispatch:
     inputs:
       core_run_id:
-        description: Successful official core Release run at the daemon tag source
+        description: Official core Release run at the daemon tag source (GitHub mode requires successful source checks)
         required: true
         type: string
+      core_source_mode:
+        description: Core provenance (github never queries npm)
+        type: choice
+        options: [npm, github]
+        default: npm
+      source_sha:
+        description: Optional exact Desktop main-ancestor commit (40 lowercase hex); empty uses dispatch SHA
+        type: string
+        default: ""
       sign:
         description: Optional signing (requires configured Windows signing credentials)
         required: false
@@ -26,11 +35,23 @@ jobs:
       DEEPWORK_TYPECHECK_JOBS: '2'
       GH_TOKEN: ${{ github.token }}
       CORE_RUN_ID: ${{ inputs.core_run_id }}
+      CORE_SOURCE_MODE: ${{ inputs.core_source_mode }}
+      DESKTOP_SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
       REQUIRE_SIGNATURE: ${{ inputs.sign }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+          ref: ${{ inputs.source_sha || github.sha }}
+          fetch-depth: 0
+      - name: Verify exact reviewed Desktop source pin
+        shell: pwsh
+        run: |
+          if ($env:DESKTOP_SOURCE_SHA -cnotmatch '^[0-9a-f]{40}$') { throw 'Expected a full Desktop commit SHA' }
+          $actual = (git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0 -or $actual -cne $env:DESKTOP_SOURCE_SHA) { throw 'Desktop source pin mismatch' }
+          git merge-base --is-ancestor $actual origin/main
+          if ($LASTEXITCODE -ne 0) { throw 'Desktop source must be reviewed on main' }
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: 1.4.3
@@ -40,10 +61,10 @@ jobs:
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun run check:public
       - run: bun run typecheck
-      - run: bun test scripts/windows-artifact.test.ts apps/desktop/test/bytecode.test.ts apps/desktop/test/browser
+      - run: bun test scripts/windows-artifact.test.ts scripts/core-source.test.ts apps/desktop/test/bytecode.test.ts apps/desktop/test/browser
       - name: Verify unsigned default and requested-signing failure behavior
         run: pwsh -NoProfile -File scripts/windows-seal.test.ps1
-      - name: Bind successful core release, CI archive and npm bytes
+      - name: Bind core release source and audited bytes using selected provenance
         run: bun scripts/windows-artifact.ts
       - name: Install upstream Electron runtime in this disposable runner only
         working-directory: apps/desktop
@@ -82,7 +103,7 @@ jobs:
         run: pwsh -NoProfile -File scripts/windows-seal.ps1
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: windows-package-${{ github.sha }}
+          name: windows-package-${{ env.DESKTOP_SOURCE_SHA }}
           path: |
             apps/desktop/release/dinobot-setup-*.exe
             apps/desktop/release/windows-lineage.json
