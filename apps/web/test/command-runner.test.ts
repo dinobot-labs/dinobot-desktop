@@ -39,3 +39,23 @@ test("a clean /model switch closes the dialog by itself and still reports onDone
  expect(useRunner.getState().run).toBeNull();
  expect((done as { state: string }).state).toBe("done");
 });
+
+ test("cancelled prompt ignores late daemon error/apply before cancel HTTP resolves", async () => {
+  const { cancelCommand } = await import("../src/state/command-runner.ts");
+  let stream!: ReadableStreamDefaultController<Uint8Array>;
+  let resolveCancel!: (r: Response) => void;
+  const emit = (event: unknown) => stream.enqueue(new TextEncoder().encode("data: " + JSON.stringify(event) + "\n\n"));
+  globalThis.fetch = (async (url: unknown, init: RequestInit) => {
+   if(String(url).includes("/prompts/")) return new Promise<Response>(r => {resolveCancel=r;});
+   return new Response(new ReadableStream({start(c){stream=c;emit({type:"started",runId:"r"});emit({type:"prompt",id:"p",prompt:{type:"secret",message:"Token"}});init.signal!.addEventListener("abort",()=>c.close());}}));
+  }) as typeof fetch;
+  startCommand("tui:test","setup",undefined,{surface:"slack"});
+  await new Promise(r=>setTimeout(r,0));
+  const cancelled=cancelCommand();
+  emit({type:"error",message:"cancelled"});
+  emit({type:"apply",request:{candidate:"must not apply"}});
+  await new Promise(r=>setTimeout(r,0));
+  const result=useRunner.getState().run;
+  resolveCancel(new Response("{}"));await cancelled;
+  expect(result?.state).toBe("cancelled");expect(result?.apply).toBeUndefined();
+ });

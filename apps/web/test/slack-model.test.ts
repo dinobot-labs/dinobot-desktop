@@ -11,13 +11,15 @@ test("official daemon manifest URL only; no duplicate permission catalog", () =>
  expect(JSON.parse(slackManifest([{kind:"output",level:"success",text:url}])!.json)).toEqual(manifest);
  for (const text of [url.replace("api.slack.com","evil.invalid"),"javascript:alert(1)",url.replace("manifest_json=","manifest="),"not a URL"]) expect(slackManifest([{kind:"output",level:"info",text}])).toBeUndefined();
 });
-test("monitor draft is explicit, bounded and read-only until copied", () => {
+test("monitor command JSON is bounded and never a model request", () => {
  const draft = {channels:"C012ABC, D034DEF C012ABC", summaries:true,timeZone:"Asia/Seoul",quietStart:22,quietEnd:8};
  const request = monitorRequest(draft);
- expect(JSON.parse(request.slice(request.indexOf("{")))).toEqual({enabled:true,channels:["C012ABC","D034DEF"],summaries:true,timeZone:"Asia/Seoul",quietStart:22,quietEnd:8});
+ expect(JSON.parse(request)).toEqual({enabled:true,channels:["C012ABC","D034DEF"],summaries:true,timeZone:"Asia/Seoul",quietStart:22,quietEnd:8});
  for (const channels of ["","xoxp-secret","C01 C02 C03 C04 C05 C06"]) expect(() => monitorRequest({...draft,channels})).toThrow();
  expect(() => monitorRequest({...draft,timeZone:"not-a-zone"})).toThrow();
  expect(() => monitorRequest({...draft,quietStart:24})).toThrow();
+ for (const intervalSeconds of [59,3601,60.5]) expect(() => monitorRequest({...draft,intervalSeconds})).toThrow();
+ expect(JSON.parse(monitorRequest({...draft,intervalSeconds:120})).intervalSeconds).toBe(120);
  expect(monitorRequest({...draft,channels:""},false)).toContain('"enabled": false');
 });
 test("apply, runtime connectivity and failed restart remain distinct", () => {

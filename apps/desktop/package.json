@@ -16,7 +16,7 @@
     "dist:win": "bun run build && bun scripts/stage-daemon.ts --os win --arch x64 && electron-builder --win nsis --x64 --publish never"
   },
   "dinobotDaemon": {
-    "dinobot": "0.8.4",
+    "dinobot": "0.8.4-slack.a8bdea8.1",
     "bun": "1.4.3"
   },
   "devDependencies": {

@@ -478,7 +478,7 @@ export const runCommandUi = (name: string, args?: string, surface: RunSurface = 
 		surface: name === "login" && surface === "dialog" ? "login" : surface,
 		onDone: (run) => {
 			if (run.stateChanged || name === "model" || name === "reasoning" || name === "fast") void refreshModel(key);
-			if (run.apply) void applySetup(run.apply);
+			if (run.state === "done" && run.apply) void applySetup(run.apply);
 		},
 	});
 };

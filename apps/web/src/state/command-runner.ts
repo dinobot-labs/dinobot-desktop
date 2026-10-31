@@ -70,6 +70,9 @@ export function startCommand(key: string, name: string, args?: string, options: 
 	let dismissed: CommandRun | undefined;
 	const push = (line: RunLine) => update(id, (r) => ({ lines: [...r.lines, line] }));
 	const onEvent = (e: CommandEvent) => {
+		// Cancellation is terminal even while the prompt-reply HTTP request is settling.
+		const current = useRunner.getState().run;
+		if (current?.id !== id || current.state === "cancelled") return;
 		switch (e.type) {
 			case "started":
 				update(id, () => ({ runId: e.runId }));
