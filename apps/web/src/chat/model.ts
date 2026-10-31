@@ -17,7 +17,6 @@ import {
 	type JsonObject,
 	KILL_TASK_TOOL,
 	MEMORY_NOTE_KIND,
-	type MemoryNoteData,
 	type Message,
 	type MessageChange,
 	type QueuedInput,
@@ -38,6 +37,8 @@ import {
 	type WorkflowStatus,
 } from "@dinobot/contracts";
 import { type ArtifactMention, pathsInText, pathsInToolCall, pathsInToolResult, recordArtifacts } from "./artifacts.ts";
+
+import { recalledMemories, type RecalledMemory } from "./recall.ts";
 
 type BlockBase = { readonly id: string; version: number };
 export type ImagePart = { readonly mimeType: string; readonly data: string };
@@ -61,7 +62,7 @@ export type ToolBlock = BlockBase & {
 };
 export type SubagentBlock = BlockBase & { kind: "subagent"; callId: string; progress: SubagentProgress };
 export type NoticeLevel = "info" | "error" | "turn";
-export type NoticeBlock = BlockBase & { kind: "notice"; text: string; level: NoticeLevel; elapsedMs?: number; tps?: number };
+export type NoticeBlock = BlockBase & { kind: "notice"; text: string; level: NoticeLevel; recall?: readonly RecalledMemory[]; elapsedMs?: number; tps?: number };
 export type Block = UserBlock | AgentBlock | ThinkingBlock | ToolBlock | SubagentBlock | NoticeBlock;
 
 export type RunPhase = "waiting_response" | "thinking" | "responding" | "tool" | "waiting_subagents" | "compacting" | "retry";
@@ -584,8 +585,8 @@ export function ingestEntry(d: ChatData, entry: EntryRecord, now: number): void 
 			return;
 		}
 		case MEMORY_NOTE_KIND: {
-			const items = (entry.data as MemoryNoteData | undefined)?.items ?? [];
-			notice(d, `기억 ${items.length}개를 떠올렸어요${items.length ? `: ${items.map((i) => i.key).join(", ")}` : ""}`, "info");
+			const recall = recalledMemories(entry);
+			push(d, { kind: "notice", id: newId("recall"), version: 0, level: "info", text: recall.map((item) => item.content ?? "").join("\n"), recall });
 			return;
 		}
 		default:

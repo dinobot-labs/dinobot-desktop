@@ -1,5 +1,10 @@
 /** English UI text, keyed by the Korean source (see index.ts). Placeholders {0}, {1} follow the source order. Grouped by the first file that uses the text. */
 export const EN: Readonly<Record<string, string>> = {
+	"전달된 기억 {0}개": "Memories provided: {0}",
+	"이 기록에는 전달 당시의 기억 내용이 없어요.": "The recalled content is not available in this record.",
+	"프로젝트 기억{0}": "Project memory{0}",
+	" · 저장 {0}": " · Saved {0}",
+	"전달된 기억이 없어요.": "No memories were provided.",
 	// Provider-reported context, not an estimated system/message split.
 	"마지막 제공자 보고 토큰": "Last provider-reported tokens",
 	"합계 {0}": "Total {0}",
@@ -238,7 +243,6 @@ export const EN: Readonly<Record<string, string>> = {
 	"컨텍스트를 압축했어요": "Context compacted",
 	"적용 중인 작업 약속 없음": "No working agreements applied",
 	"작업 약속 {0}개 적용": "Applied {0} working agreements",
-	"기억 {0}개를 떠올렸어요{1}": "Recalled {0} memories{1}",
 	// apps/web/src/chat/tool-summary.ts
 	"{0}개 호출 · {1}{2}": "{0} calls · {1}{2}",
 	// apps/web/src/dialogs/CommandPalette.tsx
