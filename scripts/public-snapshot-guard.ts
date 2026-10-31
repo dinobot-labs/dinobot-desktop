@@ -1,6 +1,12 @@
 import { readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
+/** Only the reviewed, OFL-licensed DOS font is a source asset, not an arbitrary binary. */
+export function approvedFont(path: string, bytes: Uint8Array): boolean {
+ if(path !== 'packages/ui/src/styles/fonts/neodgm.woff2') return false;
+ if(createHash('sha256').update(bytes).digest('hex') !== '0c0ca9cd73f692a5da5d7fb39737902aa9ea312537237779972a9d81ef0a33bf') throw new Error('DOS font checksum changed');
+ return true;
+}
 export function forbiddenPath(path: string): boolean {
  const p=path.replaceAll('\\','/');
  return /(^|\/)(\.env(?:\..*)?|\.dinobot|node_modules|vendor|dist|release|reports|qa|services|screens|coverage|test-results|playwright-report)(\/|$)/i.test(p)
@@ -32,6 +38,10 @@ export function checkSnapshot(root: string): number {
  }
  if(!files.length)throw new Error('Empty source snapshot');
  for(const p of files) {
+  if(approvedFont(p,readFileSync(join(root,p)))) {
+   if(!files.includes('packages/ui/src/styles/fonts/LICENSE.txt')) throw new Error('DOS font license missing');
+   continue;
+  }
   if(forbiddenPath(p))throw new Error('Forbidden public path: '+p);
   if(forbiddenContent(readFileSync(join(root,p),'utf8')))throw new Error('Sensitive or binary content: '+p);
  }

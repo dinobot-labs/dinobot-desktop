@@ -7,7 +7,9 @@
 		<script>
 			try {
 				const t = localStorage.getItem("dn-theme") || "system";
-				const dark = t === "dark" || (t === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+				const dos = t === "dos-blue" || t === "dos-black";
+				document.documentElement.dataset.appearance = dos ? t : "default";
+				const dark = dos || t === "dark" || (t === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
 				if (dark) document.documentElement.classList.add("dark");
 				// Dinosaur theme (ADR 0100); src/lib/theme.ts useDinoSync keeps it current.
 				const d = localStorage.getItem("dn-dino");
