@@ -112,9 +112,13 @@ export function sortThreads(threads: ThreadEntry[]): ThreadEntry[] {
 }
 
 let sessionsByKey = new Map<string, SessionStatus>();
+let deletionRevision = 0;
 
 async function refreshThreads(): Promise<void> {
+	const revision = deletionRevision;
 	const { threads } = await api.threads();
+	// A list captured before DELETE cannot establish the state after it.
+	if (revision !== deletionRevision) return refreshThreads();
 	const known = new Set<string>();
 	const list: ThreadEntry[] = [];
 	for (const { key } of threads) {
@@ -355,7 +359,12 @@ export async function restartDaemon(): Promise<string | null> {
 	return null;
 }
 
+// Deletion must follow any in-flight workspace write, and no selection may reopen its stream.
+const workspaceBindings = new Map<string, ReturnType<typeof api.workspace>>();
+const deletingThreads = new Set<string>();
+
 export async function selectThread(key: string): Promise<void> {
+	if (deletingThreads.has(key)) return;
 	set((s) => ({ activeKey: key, unseen: s.unseen.filter((k) => k !== key) }));
 	desktop?.setBadge(get().unseen.length);
 	const entry = get().threads.find((t) => t.key === key);
@@ -367,13 +376,21 @@ export async function selectThread(key: string): Promise<void> {
 		const cwd = entry.cwd ?? useSettings.getState().defaultCwd ?? config?.workspaceRoot ?? config?.homeDir ?? null;
 		if (cwd) {
 			try {
-				const bound = await api.workspace(key, cwd);
+				let binding = workspaceBindings.get(key);
+				if (!binding) {
+					binding = api.workspace(key, cwd);
+					workspaceBindings.set(key, binding);
+				}
+				const bound = await binding;
 				if (rememberCwd(key, bound.cwd ?? bound.requestedCwd ?? cwd)) set({ cwds: threadCwds() });
 			} catch (error) {
 				session.notice(`작업 폴더를 설정하지 못했어요: ${error instanceof Error ? error.message : String(error)}`, "error");
+			} finally {
+				workspaceBindings.delete(key);
 			}
 		}
 	}
+	if (deletingThreads.has(key)) return;
 	session.start();
 	void refreshModel(key);
 }
@@ -420,6 +437,20 @@ const DELETE_REFUSED = {
  * keeps the row and says why; a busy thread is refused here without asking the daemon. True when it is gone.
  */
 export async function deleteThread(key: string): Promise<boolean> {
+	if (deletingThreads.has(key)) return false;
+	deletingThreads.add(key);
+	try {
+		// Even a failed response can follow a committed workspace write. DELETE is authoritative.
+		await workspaceBindings.get(key)?.catch(() => {});
+		const gone = await deleteSettledThread(key);
+		if (!gone && get().activeKey === key) open.get(key)?.start();
+		return gone;
+	} finally {
+		deletingThreads.delete(key);
+	}
+}
+
+async function deleteSettledThread(key: string): Promise<boolean> {
 	const entry = get().threads.find((t) => t.key === key);
 	if (!entry || entry.channel !== "tui") return false;
 	const refuse = (body: string) => {
@@ -427,7 +458,9 @@ export async function deleteThread(key: string): Promise<boolean> {
 		return false;
 	};
 	if (entry.status?.busy || (entry.status?.queued ?? 0) > 0 || (entry.status?.subagents.length ?? 0) > 0) return refuse(DELETE_REFUSED.busy);
-	if (!entry.draft) {
+	// A draft may already exist on the daemon (workspace, events or messages). Only DELETE
+	// can establish absence; not_found is the successful result for a truly unbound draft.
+	{
 		open.get(key)?.stop();
 		open.delete(key);
 		const restore = () => {
@@ -443,10 +476,8 @@ export async function deleteThread(key: string): Promise<boolean> {
 			restore();
 			return refuse(error instanceof HttpError && error.status === 404 ? "이 데몬은 스레드 삭제를 지원하지 않아요. dinobot을 업데이트해 주세요." : error instanceof Error ? error.message : String(error));
 		}
-	} else {
-		open.get(key)?.stop();
-		open.delete(key);
 	}
+	deletionRevision++;
 	const wasActive = get().activeKey === key;
 	set((s) => ({ threads: s.threads.filter((t) => t.key !== key), unseen: s.unseen.filter((k) => k !== key), ...(s.activeKey === key ? { activeKey: null } : {}) }));
 	desktop?.setBadge(get().unseen.length);
