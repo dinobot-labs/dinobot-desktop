@@ -1,13 +1,13 @@
 # Release boundary
 
-This repository initially supports source builds only. No automatic deployment, installer publication, private artifact upload or private repository access runs in CI. The historical daemon pin 0.7.15-local.browser.1 is not a public release artifact. Do not expect dist, dist:win, dist:mac or stage:daemon to produce a working public installer yet.
+Default PR CI remains source-only. The manual Windows package workflow prepares a signed Windows x64 installer from an exact official core release; it does not publish or install it. Desktop 0.1.5 now targets core 0.8.4. Until that core version is published and signing credentials are configured, packaging remains blocked. See [Windows preparation](../windows-release.md) for lineage, signing, native acceptance and the unchanged download endpoint.
 
 A future installer release must pin a compatible public Dinobot release, preserve stage-daemon checksum and browser-protocol validation, generate its icon from source, retain runtime/Chromium/font notices, test on each target OS, and document source-to-artifact provenance. Do not substitute a private vendor tarball.
 
 Public core source
 https://github.com/dinobot-labs/dinobot
 
-The root build command needs none of those packaging inputs. The source sync from frozen `448ade1a8834f2ca2d4263295c1c8f00caaebdcd` does not change the historical app/daemon version fields or claim an installer release. Do not use an npm version's existence as proof that it was built from the canonical public core. See PUBLIC_SNAPSHOT.md for the current source boundary.
+The root build command needs none of those packaging inputs. The initial source sync from frozen `448ade1a8834f2ca2d4263295c1c8f00caaebdcd` did not claim an installer release. Subsequent version preparation likewise is not publication. Do not use an npm version's existence alone as proof that it was built from the canonical public core. See PUBLIC_SNAPSHOT.md for the original snapshot boundary.
 
 The problem-report UI requires a core exposing `dinobot report consent|agree|send --json`. Its CLI/client tests use synthetic context and fake protocol endpoints; they must not transmit actual user diagnostics for verification. File-attachment paths assume the daemon runs on the same machine. Platform-specific permission and packaging checks remain part of acceptance, not something a source hash or static guard proves.
 

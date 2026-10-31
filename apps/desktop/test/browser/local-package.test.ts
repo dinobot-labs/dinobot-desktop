@@ -24,7 +24,7 @@ function fixture(manifest: object = { name: "dinobot", version }, content = "fix
 }
 
 test("exact daemon prereleases and stable Bun pins are accepted, without ranges or unsafe versions", async () => {
- expect(await readPins()).toEqual(pins);
+ expect(await readPins()).toEqual({ dinobot: "0.8.4", bun: "1.4.3" });
  for (const dinobot of ["1.2.3", "0.7.19", version, "1.2.3-rc.0+build.9", "1.2.3-01a"]) expect(validatePins({ ...pins, dinobot }).dinobot).toBe(dinobot);
  for (const dinobot of ["latest", "^1.2.3", "1.2.3 || 9.0.0", "01.2.3", "1.2.3-01", "1.2.3-rc..1", "1x2x3", "1.2.3/evil", "1.2.3\n", "1.2.3+", "1.2.3+a..b"]) expect(() => validatePins({ ...pins, dinobot })).toThrow("exact");
  for (const bun of ["1.4.3-local.1", "^1.4.3", "01.4.3", "1.4.3\n", "1.4.3+build"]) expect(() => validatePins({ ...pins, bun })).toThrow("stable Bun");

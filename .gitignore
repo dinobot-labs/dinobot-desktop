@@ -1,3 +1,4 @@
+core-artifact/
 node_modules/
 **/dist/
 **/release/
