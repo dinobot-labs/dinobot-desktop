@@ -1,5 +1,8 @@
 /** English UI text, keyed by the Korean source (see index.ts). Placeholders {0}, {1} follow the source order. Grouped by the first file that uses the text. */
 export const EN: Readonly<Record<string, string>> = {
+	"DOS 파랑": "DOS Blue",
+	"DOS 검정": "DOS Black",
+	"DOS는 내장 Neo둥근모 16px로 표시하며 기존 글꼴 설정은 보존해요. CRT 효과는 사용하지 않아요.": "DOS uses the bundled NeoDunggeunmo font at 16px and preserves your font settings. No CRT effects are used.",
 	"전달된 기억 {0}개": "Memories provided: {0}",
 	"이 기록에는 전달 당시의 기억 내용이 없어요.": "The recalled content is not available in this record.",
 	"프로젝트 기억{0}": "Project memory{0}",
