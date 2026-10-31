@@ -10,6 +10,7 @@ import type { ToolBlock } from "./model.ts";
 import type { BlockView } from "./protocol.ts";
 import type { ChatSession } from "./session.ts";
 import { MemoryRecall } from "./MemoryRecall.tsx";
+import { WorkingAgreements } from "./WorkingAgreements.tsx";
 import { Welcome } from "./Welcome.tsx";
 
 export const SessionContext = createContext<ChatSession | null>(null);
@@ -269,7 +270,7 @@ export function Transcript({ session, keyboard = true }: { session: ChatSession;
 			case "subagent":
 				return <SubagentRow block={block} version={block.version} now={block.progress.status === "running" ? now : 0} />;
 			case "notice":
-				return block.recall ? <MemoryRecall items={block.recall} /> : <NoticeRow block={block} version={block.version} />;
+				return block.agreements !== undefined ? <WorkingAgreements section={block.agreements} /> : block.recall ? <MemoryRecall items={block.recall} /> : <NoticeRow block={block} version={block.version} />;
 		}
 	};
 

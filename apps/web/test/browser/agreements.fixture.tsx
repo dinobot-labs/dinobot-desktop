@@ -1,0 +1,14 @@
+import { createRoot } from "react-dom/client";
+import { TooltipProvider } from "@dinobot/ui";
+import { Transcript } from "../../src/chat/Transcript.tsx";
+import { ChatSession } from "../../src/chat/session.ts";
+import { createChatData, ingestEntry } from "../../src/chat/model.ts";
+import "../../src/styles.css";
+const section = Array.from({length:30}, (_,i) => `- [sample-${i + 1}] ${i === 0 ? "사용자가 요청한 범위를 먼저 확인하고, 검증한 결과만 보고합니다." : "요청 당시 전달된 작업 지침 " + (i + 1)}`).join("\n");
+const data = createChatData();
+ingestEntry(data, {id:1, conversationId:1, kind:"pi.user", model:[{role:"user",content:"작업 약속을 확인해 줘",timestamp:1}]}, 1);
+ingestEntry(data, {id:2, conversationId:1, kind:"pi.system", model:[{role:"system",content:"",timestamp:2,sections:{working_agreements:section}}]}, 2);
+ingestEntry(data, {id:3, conversationId:1, kind:"pi.system", model:[{role:"system",content:"",timestamp:3,sections:{working_agreements:null}}]}, 3);
+const session = ChatSession.forThread("tui:agreements-fixture");
+session.receive({type:"patch",key:session.key,order:data.blocks.map(b=>b.id),blocks:data.blocks,side:{...session.side,snapshots:1,total:data.blocks.length},status:{state:"live",attempt:0}});
+createRoot(document.getElementById("root")!).render(<TooltipProvider><main className="flex h-full flex-col bg-bg text-fg"><Transcript session={session} /></main></TooltipProvider>);

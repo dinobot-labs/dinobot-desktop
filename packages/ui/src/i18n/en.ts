@@ -335,8 +335,11 @@ export const EN: Readonly<Record<string, string>> = {
 	"멈췄어요.": "Stopped.",
 	"새 컨텍스트": "New context",
 	"컨텍스트를 압축했어요": "Context compacted",
-	"적용 중인 작업 약속 없음": "No working agreements applied",
-	"작업 약속 {0}개 적용": "Applied {0} working agreements",
+	"전달된 작업 약속 없음": "No working agreements provided",
+	"전달된 작업 약속 {0}개": "Working agreements provided: {0}",
+	"전달된 작업 약속": "Working agreements provided",
+	"이 요청에 전달된 작업 지침이에요. 실제 준수 여부를 뜻하지는 않아요.": "Instructions provided for this request, not evidence that they were followed.",
+	"전달된 작업 약속이 없어요.": "No working agreements were provided.",
 	// apps/web/src/chat/tool-summary.ts
 	"{0}개 호출 · {1}{2}": "{0} calls · {1}{2}",
 	// apps/web/src/dialogs/CommandPalette.tsx

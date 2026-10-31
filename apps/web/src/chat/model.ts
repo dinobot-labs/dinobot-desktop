@@ -64,7 +64,7 @@ export type ToolBlock = BlockBase & {
 };
 export type SubagentBlock = BlockBase & { kind: "subagent"; callId: string; progress: SubagentProgress };
 export type NoticeLevel = "info" | "error" | "turn";
-export type NoticeBlock = BlockBase & { kind: "notice"; text: string; level: NoticeLevel; recall?: readonly RecalledMemory[]; elapsedMs?: number; tps?: number };
+export type NoticeBlock = BlockBase & { kind: "notice"; text: string; level: NoticeLevel; recall?: readonly RecalledMemory[]; agreements?: string | null; elapsedMs?: number; tps?: number };
 export type Block = UserBlock | NudgeBlock | AgentBlock | ThinkingBlock | ToolBlock | SubagentBlock | NoticeBlock;
 
 export type RunPhase = "waiting_response" | "thinking" | "responding" | "tool" | "waiting_subagents" | "compacting" | "retry";
@@ -588,8 +588,7 @@ export function ingestEntry(d: ChatData, entry: EntryRecord, now: number): void 
 			const sections = (message as { sections?: Record<string, string | null> } | undefined)?.sections;
 			const text = sections?.[AGREEMENTS_SECTION];
 			if (text === undefined) return;
-			const count = text === null ? 0 : text.split("\n").filter((row) => row.startsWith("- [")).length;
-			notice(d, count === 0 ? "적용 중인 작업 약속 없음" : `작업 약속 ${count}개 적용`, "info");
+			push(d, { kind: "notice", id: newId("agreements"), version: 0, level: "info", text: text ?? "", agreements: text });
 			return;
 		}
 		case MEMORY_NOTE_KIND: {
