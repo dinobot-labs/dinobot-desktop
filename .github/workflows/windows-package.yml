@@ -61,7 +61,7 @@ jobs:
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun run check:public
       - run: bun run typecheck
-      - run: bun test scripts/windows-artifact.test.ts scripts/core-source.test.ts apps/desktop/test/bytecode.test.ts apps/desktop/test/browser
+      - run: bun test scripts/windows-builder.test.ts scripts/windows-artifact.test.ts scripts/core-source.test.ts apps/desktop/test/bytecode.test.ts apps/desktop/test/browser
       - name: Verify unsigned default and requested-signing failure behavior
         run: pwsh -NoProfile -File scripts/windows-seal.test.ps1
       - name: Bind core release source and audited bytes using selected provenance
@@ -91,12 +91,12 @@ jobs:
         run: |
           if ($env:REQUIRE_SIGNATURE -eq 'true') {
             if (!$env:CSC_LINK) { throw 'Requested signing credentials are unavailable' }
-            bun x --no-install electron-builder --win nsis --x64 --publish never -c.forceCodeSigning=true
+            bun x --no-install electron-builder --win nsis --x64 --publish never '--config.forceCodeSigning=true'
           } else {
             Remove-Item Env:CSC_LINK -ErrorAction SilentlyContinue
             Remove-Item Env:CSC_KEY_PASSWORD -ErrorAction SilentlyContinue
             $env:CSC_IDENTITY_AUTO_DISCOVERY = 'false'
-            bun x --no-install electron-builder --win nsis --x64 --publish never -c.forceCodeSigning=false
+            bun x --no-install electron-builder --win nsis --x64 --publish never '--config.forceCodeSigning=false'
           }
           if ($LASTEXITCODE -ne 0) { throw 'Packaging failed' }
       - name: Verify signatures and seal installer lineage without executing installer
