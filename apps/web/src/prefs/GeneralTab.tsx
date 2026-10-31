@@ -12,11 +12,13 @@ const THEMES: { value: ThemeSetting; label: string }[] = [
 	{ value: "system", label: "시스템" },
 	{ value: "light", label: "밝게" },
 	{ value: "dark", label: "어둡게" },
+	{ value: "dos-blue", label: "DOS 파랑" },
+	{ value: "dos-black", label: "DOS 검정" },
 ];
 
 export function Segmented<T extends string>({ value, options, onChange }: { value: T; options: { value: T; label: string }[]; onChange: (v: T) => void }) {
 	return (
-		<div className="flex rounded-md bg-hover p-0.5" role="radiogroup">
+		<div className="flex flex-wrap rounded-md bg-hover p-0.5" role="radiogroup">
 			{options.map((t) => (
 				<button
 					key={t.value}
@@ -70,7 +72,7 @@ export function GeneralTab() {
 		<div className="flex flex-col gap-6">
 			<Section title="화면">
 				<div className="divide-y divide-line">
-					<Row label="테마">
+					<Row label="테마" hint="DOS는 내장 Neo둥근모 16px로 표시하며 기존 글꼴 설정은 보존해요. CRT 효과는 사용하지 않아요.">
 						<Segmented value={s.theme} options={THEMES} onChange={(theme) => s.set({ theme })} />
 					</Row>
 					<Row label="공룡 테마" hint="마스코트와 화면 전체 색이 공룡에 맞춰 바뀌어요. 상태 색은 그대로예요.">

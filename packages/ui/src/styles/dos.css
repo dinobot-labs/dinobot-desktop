@@ -1,0 +1,46 @@
+/* Opt-in presentation only. Neo둥근모 v1.601, unmodified, SIL OFL 1.1 (fonts/LICENSE.txt). */
+@font-face { font-family: "NeoDunggeunmo"; src: url("./fonts/neodgm.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+html[data-appearance="dos-blue"] { --dos-bg: #0000aa; --dos-inset: #000080; --dos-ink: #e0e0e0; --dos-focus: #ffff55; --dos-info: #55ffff; --dos-error: #ffaaaa; --dos-success: #aaffaa; }
+html[data-appearance="dos-black"] { --dos-bg: #000; --dos-inset: #111; --dos-ink: #d0d0d0; --dos-focus: #e0d590; --dos-info: #b8c8c8; --dos-error: #e0aaaa; --dos-success: #afc5af; }
+html[data-appearance^="dos-"] { font-size: 16px !important; font-synthesis: none; }
+html[data-appearance^="dos-"], html[data-appearance^="dos-"][data-dino], html[data-appearance^="dos-"] [data-dino] {
+ color-scheme: dark;
+ --font-ui: "NeoDunggeunmo", Consolas, "Malgun Gothic", monospace !important;
+ --font-code: "NeoDunggeunmo", Consolas, "Malgun Gothic", monospace;
+ --bg: var(--dos-bg); --bg-band: var(--dos-inset); --surface: var(--dos-bg);
+ --surface-sunken: var(--dos-inset); --surface-hover: var(--dos-inset); --surface-pressed: var(--dos-inset);
+ --surface-inverse: var(--dos-ink); --text-inverse: #000; --text-inverse-2: #111;
+ --text-1: var(--dos-ink); --text-2: var(--dos-ink); --text-3: #aaa; --text-disabled: #888;
+ --line: #aaa; --line-strong: var(--dos-ink); --line-ui: var(--dos-ink); --focus: var(--dos-focus); --selection: var(--dos-ink);
+ --accent: var(--dos-info); --accent-deep: var(--dos-info); --accent-tint: var(--dos-inset); --accent-soft: var(--dos-inset);
+ --mint: var(--dos-success); --mint-deep: var(--dos-success); --mint-tint: var(--dos-inset); --mint-soft: var(--dos-inset);
+ --red: var(--dos-error); --red-deep: var(--dos-error); --red-tint: var(--dos-inset); --red-soft: var(--dos-inset);
+ --amber: var(--dos-focus); --amber-deep: var(--dos-focus); --amber-tint: var(--dos-inset);
+ --blue-deep: var(--dos-info); --cyan-deep: var(--dos-info); --teal-deep: var(--dos-info); --indigo-deep: var(--dos-focus); --indigo-tint: var(--dos-inset);
+ --mark-amber: var(--dos-focus); --mark-mint: var(--dos-success); --mark-red: var(--dos-error); --mark-indigo: var(--dos-info);
+ --status-idle-fg: #aaa; --status-cancelled-fg: #aaa;
+ --fs-micro: 1rem; --fs-xs: 1rem; --fs-sm: 1rem; --fs-md: 1rem; --fs-lg: 1rem; --fs-xl: 1rem; --fs-2xl: 1rem; --fs-display: 1rem;
+ --lh-ui: 1.5; --lh-chat: 1.5; --lh-tight: 1.5;
+ --radius-1: 0px; --radius-2: 0px; --radius-3: 0px; --radius-4: 0px; --radius-5: 0px; --radius-6: 0px;
+ --elevation-float: none; --elevation-pop: none;
+}
+html[data-appearance^="dos-"] :where(button, input, textarea, select, pre, [data-slot]) { border-radius: 0; box-shadow: none; }
+html[data-appearance^="dos-"] :where(aside, [data-slot="dialog"], [data-slot="composer"], [data-slot="card"]) { border: 6px double var(--line-strong); }
+html[data-appearance^="dos-"] :where([data-slot="tool-call"], [data-slot="ask-card"], pre) { border: 1px solid var(--line); background: var(--dos-inset); }
+html[data-appearance^="dos-"] :where([data-slot="tool-call"], [data-slot="ask-card"]) { padding: 8px; }
+html[data-appearance^="dos-"] :where([aria-selected="true"], [aria-checked="true"], [data-thread].bg-hover) { background: var(--dos-ink); color: #000; }
+html[data-appearance^="dos-"] :where([aria-selected="true"], [aria-checked="true"]) * { color: inherit; }
+html[data-appearance^="dos-"] :focus-visible { outline: 2px solid var(--dos-focus); outline-offset: 2px; }
+html[data-appearance^="dos-"] ::selection { background: var(--dos-ink); color: #000; }
+html[data-appearance^="dos-"] .dot-paper { background-image: none; }
+html[data-appearance^="dos-"] .md :where(pre, code) { font-size: 16px; }
+html[data-appearance^="dos-"] [data-slot="tool-call"] > button { height: auto; min-height: 32px; flex-wrap: wrap; }
+html[data-appearance^="dos-"] [data-slot="tool-call"] .truncate { white-space: normal; overflow-wrap: anywhere; }
+html[data-appearance^="dos-"] .md .hljs-addition { color: var(--dos-success); background: color-mix(in srgb, var(--dos-success) 12%, var(--dos-inset)); }
+html[data-appearance^="dos-"] .md .hljs-deletion { color: var(--dos-error); background: color-mix(in srgb, var(--dos-error) 12%, var(--dos-inset)); }
+html[data-appearance^="dos-"] .shimmer { background-image: none; -webkit-text-fill-color: currentColor; }
+html[data-appearance^="dos-"] .shimmer-group { mask-image: none; }
+html[data-appearance^="dos-"] .dn-scan { display: none; }
+/* No CRT overlay, blinking cursor or simulated progress; real stream and tool timing are untouched. */
+html[data-appearance^="dos-"] *, html[data-appearance^="dos-"] *::before, html[data-appearance^="dos-"] *::after { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) { html[data-appearance^="dos-"] * { scroll-behavior: auto !important; } }

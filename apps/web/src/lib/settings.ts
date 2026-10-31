@@ -3,7 +3,11 @@ import { create } from "zustand";
 import { GENERAL_ID, normalizePath } from "../state/projects.ts";
 import { DEFAULT_FONT_SIZE, type FontFamilySetting, normalizeTypography } from "./typography.ts";
 
-export type ThemeSetting = "system" | "light" | "dark";
+export const THEMES = ["system", "light", "dark", "dos-blue", "dos-black"] as const;
+export type ThemeSetting = (typeof THEMES)[number];
+export function normalizeTheme(value: unknown): ThemeSetting {
+	return THEMES.find((theme) => theme === value) ?? "system";
+}
 export type DagViewSetting = "rail" | "graph";
 
 export interface Settings {
@@ -59,7 +63,7 @@ export function loadSettings(): Settings {
 	try {
 		const parsed: unknown = JSON.parse(localStorage.getItem(KEY) ?? "{}");
 		const { showThinking: _legacy, dagView: _legacyDag, ...saved } = (parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Partial<Settings> : {}) as Partial<Settings> & { showThinking?: unknown; dagView?: unknown };
-		return { ...DEFAULTS, ...saved, hiddenProjects: Array.isArray(saved.hiddenProjects) ? [...new Set(saved.hiddenProjects.filter((id): id is string => typeof id === "string" && id !== GENERAL_ID && id.trim() !== "").map(normalizePath))] : [], ...normalizeTypography(saved), dino: isSpeciesId(saved.dino) ? saved.dino : DEFAULT_SPECIES };
+		return { ...DEFAULTS, ...saved, theme: normalizeTheme(saved.theme), hiddenProjects: Array.isArray(saved.hiddenProjects) ? [...new Set(saved.hiddenProjects.filter((id): id is string => typeof id === "string" && id !== GENERAL_ID && id.trim() !== "").map(normalizePath))] : [], ...normalizeTypography(saved), dino: isSpeciesId(saved.dino) ? saved.dino : DEFAULT_SPECIES };
 	} catch {
 		return DEFAULTS;
 	}
@@ -70,11 +74,12 @@ export const useSettings = create<Settings & { set: (patch: Partial<Settings>) =
 	set: (patch) =>
 		set((state) => {
 			const next = { ...state, ...patch, ...normalizeTypography({ ...state, ...patch }) };
+			next.theme = normalizeTheme(next.theme);
 			if (!isSpeciesId(next.dino)) next.dino = DEFAULT_SPECIES;
 			const { set: _ignored, ...persisted } = next;
 			try {
 				localStorage.setItem(KEY, JSON.stringify(persisted));
-				if (patch.theme) localStorage.setItem("dn-theme", patch.theme);
+				if (patch.theme) localStorage.setItem("dn-theme", next.theme);
 				// Read by index.html before the first paint, like dn-theme.
 				if (patch.dino) localStorage.setItem("dn-dino", next.dino);
 			} catch {}

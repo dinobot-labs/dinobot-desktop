@@ -8,6 +8,7 @@
 @import "./motion.css";
 @import "./dino.css";
 @import "./prose.css";
+@import "./dos.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

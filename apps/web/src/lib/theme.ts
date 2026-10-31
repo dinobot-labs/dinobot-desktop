@@ -13,7 +13,9 @@ export function useThemeSync(): void {
 	useEffect(() => {
 		const media = matchMedia("(prefers-color-scheme: dark)");
 		const apply = () => {
-			const dark = theme === "dark" || (theme === "system" && media.matches);
+			const dos = theme === "dos-blue" || theme === "dos-black";
+			document.documentElement.dataset.appearance = dos ? theme : "default";
+			const dark = dos || theme === "dark" || (theme === "system" && media.matches);
 			document.documentElement.classList.toggle("dark", dark);
 			document.documentElement.dataset.dino = dino;
 			const css = getComputedStyle(document.documentElement);
