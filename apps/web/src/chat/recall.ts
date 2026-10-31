@@ -7,7 +7,7 @@ const HEADER = "[dinobot memory] Saved project memory that may be relevant (refe
  * Keys are used for matching, not displayed. Unknown/legacy items retain their slots. */
 export function recalledMemories(entry: EntryRecord): readonly RecalledMemory[] {
 	const data = entry.data;
-	const items = data && typeof data === "object" && !Array.isArray(data) && Array.isArray(data.items) ? data.items : [];
+	const items: readonly unknown[] = data && typeof data === "object" && !Array.isArray(data) && "items" in data && Array.isArray(data.items) ? data.items : [];
 	const rows = new Map<string, RecalledMemory>();
 	for (const message of entry.model ?? []) {
 		if (message.role !== "user") continue;
@@ -23,7 +23,7 @@ export function recalledMemories(entry: EntryRecord): readonly RecalledMemory[] 
 	}
 	if (!items.length) return [...rows.values()];
 	return items.map((item) => {
-		const key = item && typeof item === "object" && !Array.isArray(item) && typeof item.key === "string" ? item.key : undefined;
+		const key = item && typeof item === "object" && !Array.isArray(item) && "key" in item && typeof item.key === "string" ? item.key : undefined;
 		return (key && rows.get(key)) || {};
 	});
 }
