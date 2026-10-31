@@ -6,6 +6,11 @@ on:
         description: Successful official core Release run at the daemon tag source
         required: true
         type: string
+      sign:
+        description: Optional signing (requires configured Windows signing credentials)
+        required: false
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -21,6 +26,7 @@ jobs:
       DEEPWORK_TYPECHECK_JOBS: '2'
       GH_TOKEN: ${{ github.token }}
       CORE_RUN_ID: ${{ inputs.core_run_id }}
+      REQUIRE_SIGNATURE: ${{ inputs.sign }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -54,20 +60,27 @@ jobs:
           $tar = (Resolve-Path "../../core-artifact/dinobot-$($lineage.version).tgz").Path
           bun scripts/stage-daemon.ts --os win --arch x64 --dinobot-tarball $tar --sha256 $lineage.sha256
           if ($LASTEXITCODE -ne 0) { throw 'Daemon staging failed' }
-      - name: Signed Windows NSIS only (never publish from builder)
+      - name: Windows NSIS only, optional signing (never publish from builder)
         working-directory: apps/desktop
         env:
           CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
         run: |
-          if (!$env:CSC_LINK) { throw 'Windows code signing credentials are required' }
-          bun x --no-install electron-builder --win nsis --x64 --publish never -c.forceCodeSigning=true
-          if ($LASTEXITCODE -ne 0) { throw 'Signed packaging failed' }
+          if ($env:REQUIRE_SIGNATURE -eq 'true') {
+            if (!$env:CSC_LINK) { throw 'Requested signing credentials are unavailable' }
+            bun x --no-install electron-builder --win nsis --x64 --publish never -c.forceCodeSigning=true
+          } else {
+            Remove-Item Env:CSC_LINK -ErrorAction SilentlyContinue
+            Remove-Item Env:CSC_KEY_PASSWORD -ErrorAction SilentlyContinue
+            $env:CSC_IDENTITY_AUTO_DISCOVERY = 'false'
+            bun x --no-install electron-builder --win nsis --x64 --publish never -c.forceCodeSigning=false
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Packaging failed' }
       - name: Verify signatures and seal installer lineage without executing installer
         run: pwsh -NoProfile -File scripts/windows-seal.ps1
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: windows-signed-${{ github.sha }}
+          name: windows-package-${{ github.sha }}
           path: |
             apps/desktop/release/dinobot-setup-*.exe
             apps/desktop/release/windows-lineage.json

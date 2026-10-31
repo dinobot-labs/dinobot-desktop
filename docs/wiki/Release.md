@@ -1,6 +1,6 @@
 # Release boundary
 
-Default PR CI remains source-only. The manual Windows package workflow prepares a signed Windows x64 installer from an exact official core release; it does not publish or install it. Desktop 0.1.5 now targets core 0.8.4. Until that core version is published and signing credentials are configured, packaging remains blocked. See [Windows preparation](../windows-release.md) for lineage, signing, native acceptance and the unchanged download endpoint.
+Default PR CI remains source-only. The manual Windows package workflow prepares a Windows x64 installer (unsigned by default, optional signing) from an exact official core release; it does not publish or install it. Desktop 0.1.5 now targets core 0.8.4. Until that core version is published, official packaging remains blocked. Signing infrastructure is not a prerequisite. See [Windows preparation](../windows-release.md) for lineage, signing, native acceptance and the unchanged download endpoint.
 
 A future installer release must pin a compatible public Dinobot release, preserve stage-daemon checksum and browser-protocol validation, generate its icon from source, retain runtime/Chromium/font notices, test on each target OS, and document source-to-artifact provenance. Do not substitute a private vendor tarball.
 
