@@ -1,4 +1,5 @@
 // Real Chromium + ChatView/Composer; mocked API boundary, no daemon/model or user profile.
+import { checkChatHeight } from "./chat-height.e2e.mjs";
 import { createServer } from "vite";
 import { chromium } from "playwright-core";
 import assert from "node:assert/strict";
@@ -7,7 +8,7 @@ const root = fileURLToPath(new URL("../apps/web", import.meta.url));
 const server = await createServer({ root, server: { port: 0, strictPort: false, host: "127.0.0.1" }, plugins: [{ name: "ask-fixture", configureServer(server) {
  server.middlewares.use("/__ask_test", async (_req, res) => {
   res.setHeader("Content-Type", "text/html");
-  res.end(await server.transformIndexHtml("/__ask_test", '<div id="root"></div><script type="module" src="/test/ask-composer.fixture.tsx"></script>'));
+  res.end(await server.transformIndexHtml("/__ask_test", '<html lang="ko"><script>window.__dnLanguage="ko"</script><div id="root"></div><script type="module" src="/test/ask-composer.fixture.tsx"></script></html>'));
  });
 } }] });
 let browser;
@@ -20,6 +21,7 @@ try {
  await page.route("**/daemon/**", route => route.fulfill({ status: 503, json: { error: "isolated fixture" } }));
  await page.goto(server.resolvedUrls.local[0] + "__ask_test");
  await page.waitForFunction(() => window.fixture);
+ if (!process.argv.includes("--layout-only")) {
  const area = page.locator("textarea").first();
  const setup = async (ids, fail = false, expired = false) => {
   await page.evaluate(args => window.fixture.setup(...args), [ids, fail, expired]);
@@ -82,5 +84,7 @@ try {
   assert.equal((await sent())[0].text, "normal message");
  }
  console.log("PASS no live question leaves normal messages unchanged");
+ }
+ await checkChatHeight(page, server.resolvedUrls.local[0]);
  assert.deepEqual(errors, []);
 } finally { await browser?.close(); await server.close(); }

@@ -147,7 +147,7 @@ export function ChatView({ threadKey }: { threadKey: string }) {
 	return (
 		<div className="flex min-h-0 flex-1 flex-col" data-testid="chat-view" data-thread={threadKey}>
 			<Transcript session={session} />
-			<div className="shrink-0 px-6 pt-3 pb-4">
+			<div className="max-h-full shrink-0 overflow-y-auto px-6 pt-3 pb-4">
 				<div className="mx-auto flex max-w-3xl flex-col gap-2">
 					{connectionNote ? <div className="rounded-md bg-status-running-tint px-3 py-1.5 text-xs text-status-running-fg">{connectionNote}</div> : null}
 					<Notices />
