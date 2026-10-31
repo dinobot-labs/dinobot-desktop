@@ -472,7 +472,8 @@ export const commandThread = () => get().activeKey ?? SETTINGS_THREAD;
 
 export const runCommandUi = (name: string, args?: string, surface: RunSurface = "dialog") => {
 	set({ paletteOpen: false });
-	const key = commandThread();
+	// Slack setup must never inherit a remote/shared active conversation.
+	const key = surface === "slack" ? SETTINGS_THREAD : commandThread();
 	return startCommand(key, name, args, {
 		surface: name === "login" && surface === "dialog" ? "login" : surface,
 		onDone: (run) => {
@@ -488,7 +489,7 @@ async function applySetup(request: ManifestApplyRequest): Promise<void> {
 		toast({ tone: "error", title: "이 설정 변경은 데스크톱 앱에서만 적용할 수 있어요" });
 		return;
 	}
-	set({ applying: true });
+	set({ applying: true, applyOutcome: null });
 	try {
 		const info = get().daemon ?? (await api.daemon());
 		const port = get().config?.port ?? 8786;
@@ -507,6 +508,9 @@ async function applySetup(request: ManifestApplyRequest): Promise<void> {
 		await connect();
 		const key = get().activeKey;
 		if (key) sessionFor(key).start();
+	} catch {
+		set({ applyOutcome: { status: "error" } });
+		toast({ tone: "error", title: "설정 적용 결과를 확인하지 못했어요. 연결 완료로 간주하지 마세요." });
 	} finally {
 		set({ applying: false });
 	}

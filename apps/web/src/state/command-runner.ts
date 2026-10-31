@@ -10,7 +10,7 @@ import { api, runCommand } from "../lib/api.ts";
 import { desktop } from "../lib/bridge.ts";
 import { useSettings } from "../lib/settings.ts";
 
-export type RunSurface = "dialog" | "login" | "quiet";
+export type RunSurface = "dialog" | "login" | "quiet" | "slack";
 export type RunLine =
 	| { kind: "output"; text: string; level: "info" | "success" | "error" }
 	| { kind: "auth_url"; url: string; instructions?: string; code?: string }

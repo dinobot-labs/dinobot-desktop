@@ -11,6 +11,7 @@ import { DaemonTab } from "./DaemonTab.tsx";
 import { GeneralTab } from "./GeneralTab.tsx";
 import { ShortcutsList } from "./ShortcutsTab.tsx";
 import { UsageTab } from "./UsageTab.tsx";
+import { SlackTab } from "./SlackTab.tsx";
 
 const TABS: { id: string; label: string; icon: ReactNode; view: () => ReactNode }[] = [
 	{ id: "general", label: "일반", icon: <IconAdjustments />, view: () => <GeneralTab /> },
@@ -18,6 +19,7 @@ const TABS: { id: string; label: string; icon: ReactNode; view: () => ReactNode 
 	{ id: "usage", label: "사용량", icon: <IconChartBar />, view: () => <UsageTab /> },
 	{ id: "model", label: "모델", icon: <IconBrain />, view: () => <ModelTab /> },
 	{ id: "skills", label: "스킬", icon: <IconSparkles />, view: () => <SkillsTab /> },
+	{ id: "slack", label: "Slack", icon: <IconPlug />, view: () => <SlackTab /> },
 	{ id: "plugins", label: "플러그인", icon: <IconPlug />, view: () => <PluginsTab /> },
 	{ id: "reports", label: "문제 보고", icon: <IconBug />, view: () => <ReportsTab /> },
 	{ id: "daemon", label: "데몬", icon: <IconServer />, view: () => <DaemonTab /> },
