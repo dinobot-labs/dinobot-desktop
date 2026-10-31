@@ -6,11 +6,12 @@ import { collapsedProjects, saveCollapsedProjects, setProjectHidden, useSettings
 import { deleteThread, newThread, openSettings, selectThread, type ThreadEntry, useApp } from "../state/app.ts";
 import { groupProjects, nextShown, PROJECT_PAGE, PROJECT_STEP, type ProjectGroup } from "../state/projects.ts";
 import { cleanPreview, threadLabel, withoutSender } from "./thread-label.ts";
+import { hasActiveWork } from "../state/thread-activity.ts";
 import { ReportButton } from "../dialogs/ReportDialog.tsx";
 
 function statusKind(t: ThreadEntry, unseen: boolean): StatusKind {
 	const s = t.status;
-	if (s?.busy) return s.state === "retrying" ? "retry" : "running";
+	if (hasActiveWork(s)) return s?.busy && s.state === "retrying" ? "retry" : "running";
 	if (unseen) return "done";
 	if (s && s.queued > 0) return "waiting";
 	return "ready";

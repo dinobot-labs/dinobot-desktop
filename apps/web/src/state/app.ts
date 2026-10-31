@@ -18,6 +18,8 @@ import { HttpError } from "../lib/sse.ts";
 import { type DaemonConfig, desktop } from "../lib/bridge.ts";
 import { rememberCwd, rememberTitle, threadCwds, threadTitles, useSettings } from "../lib/settings.ts";
 
+import { hasActiveWork } from "./thread-activity.ts";
+
 export type Connection = "checking" | "online" | "offline" | "starting";
 
 export interface ThreadEntry {
@@ -103,10 +105,10 @@ export function createdAtOf(key: string): number | undefined {
 
 const channelOf = (key: string) => key.slice(0, Math.max(0, key.indexOf(":")));
 
-/** Busy first, then most recent activity (or creation). */
+/** Active parent or child work first, then most recent activity (or creation). */
 export function sortThreads(threads: ThreadEntry[]): ThreadEntry[] {
 	const at = (t: ThreadEntry) => t.status?.lastActivityAt ?? t.createdAt ?? 0;
-	return [...threads].sort((a, b) => Number(Boolean(b.status?.busy)) - Number(Boolean(a.status?.busy)) || at(b) - at(a) || b.key.localeCompare(a.key));
+	return [...threads].sort((a, b) => Number(hasActiveWork(b.status)) - Number(hasActiveWork(a.status)) || at(b) - at(a) || b.key.localeCompare(a.key));
 }
 
 let sessionsByKey = new Map<string, SessionStatus>();
@@ -126,7 +128,7 @@ async function refreshThreads(): Promise<void> {
 	set({ threads: sortThreads(list) });
 }
 
-function applySessions(snapshot: SessionsEvent): void {
+export function applySessions(snapshot: SessionsEvent): void {
 	const previous = sessionsByKey;
 	sessionsByKey = new Map(snapshot.sessions.map((s) => [s.thread, s]));
 	let missing = false;

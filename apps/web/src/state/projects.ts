@@ -12,6 +12,7 @@
  *   are listed, plus any project holding a sticky thread. "일반" comes after the projects.
  */
 import type { ThreadEntry } from "./app.ts";
+import { hasActiveWork } from "./thread-activity.ts";
 
 export const PROJECT_RECENT = 5;
 export const GENERAL_RECENT = 10;
@@ -94,10 +95,10 @@ export interface ProjectLayout {
 	general: ProjectGroup | null;
 }
 
-const activityOf = (t: ThreadEntry) => (t.status?.busy ? Number.POSITIVE_INFINITY : t.status?.lastActivityAt ?? t.createdAt ?? 0);
+const activityOf = (t: ThreadEntry) => (hasActiveWork(t.status) ? Number.POSITIVE_INFINITY : t.status?.lastActivityAt ?? t.createdAt ?? 0);
 
 export function isSticky(t: ThreadEntry, unseen: ReadonlySet<string> | undefined, activeKey: string | null | undefined): boolean {
-	return Boolean(t.status?.busy) || (t.status?.queued ?? 0) > 0 || Boolean(t.draft) || t.key === activeKey || Boolean(unseen?.has(t.key));
+	return hasActiveWork(t.status) || (t.status?.queued ?? 0) > 0 || Boolean(t.draft) || t.key === activeKey || Boolean(unseen?.has(t.key));
 }
 
 /** Project id of a thread: the normalized folder, or {@link GENERAL_ID}. */
@@ -140,7 +141,7 @@ export function groupProjects(threads: readonly ThreadEntry[], options: GroupOpt
 			threads: b.threads,
 			visible,
 			hidden: b.threads.length - visible.length,
-			busy: b.threads.filter((t) => t.status?.busy).length,
+			busy: b.threads.filter((t) => hasActiveWork(t.status)).length,
 			unseen: b.threads.filter((t) => unseen?.has(t.key)).length,
 			collapsed: isCollapsed,
 			canShowMore: !isCollapsed && limit < PROJECT_SIDEBAR_MAX && b.threads.length > limit,
