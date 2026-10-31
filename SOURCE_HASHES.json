@@ -682,7 +682,7 @@
   "packages/ui/src/components/tabs.tsx": "604e1dc5f1064023d6fc291b6cdd3b5598e8cc3c370ecabfbd14ee6aeb61392f",
   "packages/ui/src/components/toast.tsx": "3ebc0f9e23ada79a608f8bab127c44986e110422b1880493f7675d584155c623",
   "packages/ui/src/components/tooltip.tsx": "918b13742b45a24ae56b46346c199fc4b020e227bf67c079f029e00ec6cee14b",
-  "packages/ui/src/i18n/en.ts": "75aa7d6d47f70e697463a1fb06c187c80f053e459bdb31eb2a90f5b301675eb8",
+  "packages/ui/src/i18n/en.ts": "77231c03269eaaeb75ee1d38a33ab31c306641968bb46ae9b0e401dc046da47a",
   "packages/ui/src/i18n/extract.ts": "d880285b8d8b9864d1b0ab495c08911a6e0b947925cbc3f116c35b2e3cff1c50",
   "packages/ui/src/i18n/ignore.ts": "ac1ddda2267ab3dce6e86b5c88edeaecb954f21d6c8d1179883863a9df61a276",
   "packages/ui/src/i18n/index.ts": "bc690c6c02f7e0873259e64279c77be4efa5f378896c14f9e3089d40f2716fd5",
