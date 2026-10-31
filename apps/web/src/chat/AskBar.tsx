@@ -15,7 +15,7 @@ export function AskBar({ asks, onChoose, onAnswer }: { asks: AskView[]; onChoose
 	return (
 		<div className="flex flex-col gap-2" data-testid="ask-bar">
 			{asks.map((ask) => (
-				<div key={ask.id} className="rounded-lg border border-status-waiting bg-status-waiting-tint p-3">
+				<div key={ask.id} className="min-w-0 rounded-lg border border-status-waiting bg-status-waiting-tint p-3 [overflow-wrap:anywhere]">
 					<div className="flex items-start gap-2.5">
 						<Dino state="waiting" size={30} shape="pixel" className="mt-0.5" />
 						<div className="min-w-0 flex-1">
@@ -34,6 +34,7 @@ export function AskBar({ asks, onChoose, onAnswer }: { asks: AskView[]; onChoose
 								<Button
 									key={option}
 									size="sm"
+									className="h-auto min-h-7 min-w-0 max-w-full justify-start py-1.5 text-left whitespace-normal"
 									variant={i === 0 ? "primary" : "secondary"}
 									disabled={busy === ask.id}
 									onClick={() => {
@@ -41,9 +42,9 @@ export function AskBar({ asks, onChoose, onAnswer }: { asks: AskView[]; onChoose
 										void onChoose(ask, i).finally(() => setBusy(null));
 									}}
 								>
-									<span className="font-mono text-micro opacity-60">{i + 1}</span>
-									{option}
-									{option === ask.default ? <span className="text-micro opacity-60">기본</span> : null}
+									<span className="shrink-0 font-mono text-micro opacity-60">{i + 1}</span>
+									<span className="min-w-0">{option}</span>
+									{option === ask.default ? <span className="shrink-0 text-micro opacity-60">기본</span> : null}
 								</Button>
 							))}
 						</div>

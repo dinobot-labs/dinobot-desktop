@@ -4,6 +4,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
 import { createServer } from "vite";
+import { checkOverflow } from "./composer-overflow.e2e.ts";
 const root = fileURLToPath(new URL("../apps/web", import.meta.url));
 const artifacts = fileURLToPath(new URL("../test-results/composer-layout/", import.meta.url));
 mkdirSync(artifacts, { recursive: true });
@@ -25,7 +26,7 @@ try {
  const errors: string[] = [];
  page.on("pageerror", error => errors.push(error.message));
  await page.route("**/daemon/**", route => route.fulfill({ status: 200, json: { commands: [] } }));
- for (const theme of ["light", "dos-blue", "dos-black"]) for (const width of [1200, 640, 420]) for (const busy of [false, true]) {
+ if (!process.argv.includes("--overflow-only")) for (const theme of ["light", "dos-blue", "dos-black"]) for (const width of [1200, 640, 420]) for (const busy of [false, true]) {
   const name = theme + "-" + width + "-" + (busy ? "busy" : "idle");
   await page.setViewportSize({ width, height: 700 });
   await page.goto(server.resolvedUrls!.local[0] + "__composer_layout?theme=" + theme + "&busy=" + busy, { timeout: 60000 });
@@ -125,4 +126,6 @@ try {
  console.log(JSON.stringify({cases:results.length,failures,errors,artifacts},null,2));
  assert.deepEqual(errors,[]);
  assert.deepEqual(failures,[]);
+ await checkOverflow(page, server.resolvedUrls!.local[0]!, artifacts);
+ assert.deepEqual(errors,[]);
 } finally { await browser?.close(); await server.close(); }

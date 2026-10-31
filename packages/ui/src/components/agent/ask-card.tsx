@@ -15,7 +15,7 @@ export function AskCard({
 	className?: string;
 }) {
 	return (
-		<div data-slot="ask-card" className={cn("rounded-lg border border-status-waiting bg-status-waiting-tint p-3", className)}>
+		<div data-slot="ask-card" className={cn("min-w-0 rounded-lg border border-status-waiting bg-status-waiting-tint p-3 [overflow-wrap:anywhere]", className)}>
 			<div className="flex items-start gap-2.5">
 				<Dino state="waiting" size={30} shape="pixel" className="mt-0.5" />
 				<div className="min-w-0 flex-1">
@@ -25,9 +25,9 @@ export function AskCard({
 			</div>
 			<div className="mt-2.5 flex flex-wrap gap-1.5 pl-10">
 				{options.map((o, i) => (
-					<Button key={o} size="sm" variant={i === 0 ? "primary" : "secondary"} onClick={() => onChoose?.(o, i)}>
-						<span className="font-mono text-micro opacity-60">{i + 1}</span>
-						{o}
+					<Button key={o} size="sm" className="h-auto min-h-7 min-w-0 max-w-full justify-start py-1.5 text-left whitespace-normal" variant={i === 0 ? "primary" : "secondary"} onClick={() => onChoose?.(o, i)}>
+						<span className="shrink-0 font-mono text-micro opacity-60">{i + 1}</span>
+						<span className="min-w-0">{o}</span>
 					</Button>
 				))}
 			</div>
