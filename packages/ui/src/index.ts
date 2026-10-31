@@ -7,6 +7,7 @@ export { Badge, badgeVariants, type BadgeProps } from "./components/badge.tsx";
 export { Card, CardBody, CardDescription, CardFooter, CardHeader, CardTitle } from "./components/card.tsx";
 export { Input, Textarea } from "./components/input.tsx";
 export { Kbd } from "./components/kbd.tsx";
+export { Popover, PopoverPopup } from "./components/popover.tsx";
 export { Separator } from "./components/separator.tsx";
 export { Tooltip, TooltipPopup, TooltipProvider, TooltipRoot, TooltipTrigger } from "./components/tooltip.tsx";
 export { Tabs, TabsList, TabsPanel, TabsTab } from "./components/tabs.tsx";

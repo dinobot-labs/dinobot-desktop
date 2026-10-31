@@ -24,7 +24,7 @@ const initial = session.side;
 const transcript = Array.from({length: 8}, (_, i) => ({ id: "history-" + i, version: 1, kind: "user" as const, at: Date.now(), text: "기존 대화의 사진과 설명을 확인해 주세요. ".repeat(8) }));
 const setup = (ids: string[], failure = false, expired = false) => {
  calls.length = 0; notices.length = 0; fail = failure;
- session.receive({ type: "patch", key: session.key, order: transcript.map(b => b.id), blocks: transcript, side: { ...initial, snapshots: 1, total: transcript.length, firstUserText: "Existing thread", run: { startedAt: Date.now(), phase: "thinking", phaseStartedAt: Date.now() }, asks: ids.map(id => ({ id, from: "1", to: "human", kind: "clarification", refs: [], question: "Question " + id, options: ["First", "Second"], default: "First", state: "open", createdAt: Date.now() - 1000, deadlineAt: Date.now() + (expired ? -1000 : 60000) })) } });
+ session.receive({ type: "patch", key: session.key, order: transcript.map(b => b.id), blocks: transcript, side: { ...initial, agent: { ...initial.agent, cwd: "C:/fixture" }, snapshots: 1, total: transcript.length, firstUserText: "Existing thread", run: { startedAt: Date.now(), phase: "thinking", phaseStartedAt: Date.now() }, asks: ids.map(id => ({ id, from: "1", to: "human", kind: "clarification", refs: [], question: "Question " + id, options: ["First", "Second"], default: "First", state: "open", createdAt: Date.now() - 1000, deadlineAt: Date.now() + (expired ? -1000 : 60000) })) } });
 };
 // Replay the acknowledged outgoing message through the real transcript reducer,
 // as the worker does; no fake answer state or model response is injected.

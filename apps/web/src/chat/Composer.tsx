@@ -1,5 +1,5 @@
 import { type CommandArgument, MESSAGE_IMAGE_LIMITS, type ThreadModelState } from "@dinobot/contracts";
-import { Button, cn, Kbd, Shimmer, toast, Tooltip } from "@dinobot/ui";
+import { Button, cn, Kbd, Popover, PopoverPopup, Shimmer, toast, Tooltip } from "@dinobot/ui";
 import { IconArrowUp, IconBolt, IconBrain, IconClipboardText, IconFile, IconFolder, IconPaperclip, IconPlayerStopFilled, IconX } from "@tabler/icons-react";
 import { type ClipboardEvent, type DragEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../lib/api.ts";
@@ -106,6 +106,8 @@ export function Composer({ busy, disabled, hasQueue, threadKey, cwd, model, usag
 	const [closedFor, setClosedFor] = useState<string | null>(null);
 	const browse = useRef<{ index: number; draft: string } | null>(null);
 	const area = useRef<HTMLTextAreaElement>(null);
+	const anchor = useRef<HTMLDivElement>(null);
+	const completion = useRef<HTMLDivElement>(null);
 	const pasteSeq = useRef(0);
 	const commands = useCommands((s) => s.commands);
 
@@ -176,6 +178,18 @@ export function Composer({ busy, disabled, hasQueue, threadKey, cwd, model, usag
 		return [];
 	}, [text, slash?.[1], argMatch?.[2], args, commands, refs, closedFor]);
 	const chosen = suggestions[Math.min(pick, Math.max(0, suggestions.length - 1))];
+	useEffect(() => {
+		const list = completion.current;
+		const option = list?.querySelector<HTMLElement>('[aria-selected="true"]');
+		if (!list || !option) return;
+		// Scroll only the list, never the footer or the locked application shell.
+		const box = list.getBoundingClientRect();
+		const row = option.getBoundingClientRect();
+		const top = box.top + list.clientTop;
+		const bottom = top + list.clientHeight;
+		if (row.top < top) list.scrollTop -= top - row.top;
+		else if (row.bottom > bottom) list.scrollTop += row.bottom - bottom;
+	}, [pick, chosen?.insert]);
 
 	const putImages = (update: (list: Attachment[]) => Attachment[]) => {
 		imagesNow.current = update(imagesNow.current);
@@ -428,26 +442,28 @@ export function Composer({ busy, disabled, hasQueue, threadKey, cwd, model, usag
 					? `추론 ${model.thinkingLevel} (고정)`
 					: `추론 ${model.thinkingLevel}`;
 	return (
-		<div className="relative">
+		<div ref={anchor} className="relative">
 			{suggestions.length ? (
-				<div className="absolute right-0 bottom-full left-0 mb-2 max-h-72 overflow-y-auto rounded-lg border border-line bg-surface shadow-float" role="listbox" data-testid="composer-suggestions">
-					{suggestions.map((s, i) => (
-						<button
-							key={`${s.kind}:${s.insert}`}
-							type="button"
-							role="option"
-							aria-selected={i === pick}
-							onMouseDown={(e) => {
-								e.preventDefault();
-								accept(s);
-							}}
-							className={cn("flex w-full cursor-pointer items-center gap-3 px-3 py-1.5 text-left text-sm", i === pick ? "bg-hover" : "hover:bg-hover")}
-						>
-							<span className={cn("shrink-0 text-fg", s.kind !== "argument" && "font-mono")}>{s.label}</span>
-							<span className="min-w-0 truncate text-fg-3">{s.description}</span>
-						</button>
-					))}
-				</div>
+				<Popover open>
+					<PopoverPopup ref={completion} anchor={anchor} initialFocus={false} finalFocus={false} role="listbox" data-testid="composer-suggestions">
+						{suggestions.map((s, i) => (
+							<button
+								key={`${s.kind}:${s.insert}`}
+								type="button"
+								role="option"
+								aria-selected={i === pick}
+								onMouseDown={(e) => {
+									e.preventDefault();
+									accept(s);
+								}}
+								className={cn("flex w-full cursor-pointer items-center gap-3 px-3 py-1.5 text-left text-sm", i === pick ? "bg-hover" : "hover:bg-hover")}
+							>
+								<span className={cn("shrink-0 text-fg", s.kind !== "argument" && "font-mono")}>{s.label}</span>
+								<span className="min-w-0 truncate text-fg-3">{s.description}</span>
+							</button>
+						))}
+					</PopoverPopup>
+				</Popover>
 			) : null}
 			<div
 				data-slot="composer"

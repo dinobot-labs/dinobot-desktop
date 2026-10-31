@@ -1,4 +1,5 @@
 // Real Chromium + ChatView/Composer; mocked API boundary, no daemon/model or user profile.
+import { checkSuggestions } from "./composer-suggestions.e2e.mjs";
 import { checkChatHeight } from "./chat-height.e2e.mjs";
 import { createServer } from "vite";
 import { chromium } from "playwright-core";
@@ -21,7 +22,7 @@ try {
  await page.route("**/daemon/**", route => route.fulfill({ status: 503, json: { error: "isolated fixture" } }));
  await page.goto(server.resolvedUrls.local[0] + "__ask_test");
  await page.waitForFunction(() => window.fixture);
- if (!process.argv.includes("--layout-only")) {
+ if (!process.argv.includes("--layout-only") && !process.argv.includes("--suggestions-only")) {
  const area = page.locator("textarea").first();
  const setup = async (ids, fail = false, expired = false) => {
   await page.evaluate(args => window.fixture.setup(...args), [ids, fail, expired]);
@@ -85,6 +86,7 @@ try {
  }
  console.log("PASS no live question leaves normal messages unchanged");
  }
- await checkChatHeight(page, server.resolvedUrls.local[0]);
+ if (!process.argv.includes("--suggestions-only")) await checkChatHeight(page, server.resolvedUrls.local[0]);
+ await checkSuggestions(page, server.resolvedUrls.local[0]);
  assert.deepEqual(errors, []);
 } finally { await browser?.close(); await server.close(); }
